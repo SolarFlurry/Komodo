@@ -1,0 +1,10 @@
+import "math"
+
+// example stuff
+const msg = "Hello, World!"
+
+glob hello
+
+/"say" + msg
+
+1 + 2 * 3 + 4 / 5 - 6 + 7 * 8
