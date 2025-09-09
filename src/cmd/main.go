@@ -22,6 +22,7 @@ func main() {
 	// add subcommands
 	cli.AddSubcommand("help", "Get help on the Komodo CLI")
 	cli.AddSubcommand("build", "Compile a .kmd file")
+	cli.AddSubcommand("version", "Display the Komodo version")
 
 	cli.Parse()
 
@@ -55,6 +56,8 @@ func main() {
 		}
 
 		fmt.Println(string(output))
+	case "version":
+		fmt.Println("Komodo v0.1-beta")
 	default:
 		cli.Help()
 	}

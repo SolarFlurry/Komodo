@@ -40,20 +40,22 @@ var currentSubcommand string
 
 // Parse the arguments
 func Parse() {
-	var startCheck = 1
-	// check if subcommand
-	for _, subc := range registeredSubcommands {
-		if subc.Name == os.Args[1] {
-			currentSubcommand = os.Args[1]
-			startCheck = 2
-			break
+	if len(os.Args) > 1 {
+		var startCheck = 1
+		// check if subcommand
+		for _, subc := range registeredSubcommands {
+			if subc.Name == os.Args[1] {
+				currentSubcommand = os.Args[1]
+				startCheck = 2
+				break
+			}
 		}
-	}
-	for _, arg := range os.Args[startCheck:] {
-		if arg[0] == '-' {
-			flags = append(flags, arg[1:])
-		} else {
-			args = append(args, arg)
+		for _, arg := range os.Args[startCheck:] {
+			if arg[0] == '-' {
+				flags = append(flags, arg[1:])
+			} else {
+				args = append(args, arg)
+			}
 		}
 	}
 }
