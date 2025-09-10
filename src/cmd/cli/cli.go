@@ -6,11 +6,6 @@ import (
 	"slices"
 )
 
-type subcommand struct {
-	Name  string
-	Usage string
-}
-
 var registeredSubcommands []subcommand
 
 func AddSubcommand(name string, usage string) {

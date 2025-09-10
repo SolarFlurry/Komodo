@@ -1,13 +1,57 @@
+#ifndef LEXER_H
+#define LEXER_H
+
 #include "token.h"
 
-void fail (unsigned int &state) {
+enum LexerState {
+	Start,
+	// Identifier
+	IdStart,
+	IdMid,
+	IdEnd,
+	// Number
+	NumStart,
+	NumMid,
+	NumEnd,
+	// String
+	StrStart,
+	StrMid,
+	StrEnd,
+	// Arithmetic operatoe
+	OpStart,
+	OpEnd,
+	// Comment
+	CommentStart,
+	CommentMid,
+	CommentEnd,
+	// LParen
+	LParenStart,
+	LParenEnd,
+	// RParen
+	RParenStart,
+	RParenEnd,
+	// LBrace
+	LBraceStart,
+	LBraceEnd,
+	// RBrace
+	RBraceStart,
+	RBraceEnd,
+	// ERROR
+	Unknown
+};
+
+void fail (LexerState &state) {
 	switch (state) {
-		case 0: state = 1; return;
-		case 1: state = 4; return;
-		case 4: state = 7; return;
-		case 7: state = 10; return;
-		case 10: state = 12; return;
-		default: state = 256;
+		case Start: state = IdStart; return;
+		case IdStart: state = NumStart; return;
+		case NumStart: state = StrStart; return;
+		case StrStart: state = OpStart; return;
+		case OpStart: state = CommentStart; return;
+		case CommentStart: state = LParenStart; return;
+		case LParenStart: state = RParenStart; return;
+		case RParenStart: state = LBraceStart; return;
+		case LBraceStart: state = RBraceStart; return;
+		default: state = Unknown;
 	}
 }
 
@@ -15,13 +59,13 @@ std::vector<Token*> tokenise(std::string program) {
 	program += ' ';
 	unsigned int i = 0;
 	unsigned int line = 0;
-	unsigned int state = 0;
+	LexerState state = Start;
 	std::vector<Token*> tokList;
 	std::string acc = "";
 
 	while (i < program.length()) {
 		switch (state) {
-			case 0: { // starting
+			case Start: { // starting
 				if (isspace(program[i])) {
 					if (program[i] == '\n') line++;
 					i++;
@@ -30,80 +74,73 @@ std::vector<Token*> tokenise(std::string program) {
 				}
 				break;
 			}
-			case 1: { // identifer
+			case IdStart: { // identifer
 				if (isalpha(program[i])) {
 					acc += program[i];
 					i++;
-					state = 2;
+					state = IdMid;
 				} else {
 					fail(state);
 				}
 				break;
 			}
-			case 2: {
+			case IdMid: {
 				if (isalnum(program[i])) {
 					acc += program[i];
 					i++;
 				} else {
-					state = 3;
+					state = IdEnd;
 				}
 				break;
 			}
-			case 3: {
-				Token* tok = new Token;
-				tok->lexeme = acc;
-				tok->line = line;
+			case IdEnd: {
+				Token* tok = newToken(acc, TokenType::Identifier, line);
 				if (acc == "glob" || acc == "property" || acc == "const" || acc == "func" || acc == "import" || acc == "if") {
 					tok->type = TokenType::Keyword;
-				} else {
-					tok->type = TokenType::Identifier;
 				}
 				tokList.push_back(tok);
 				acc = "";
-				state = 0;
+				state = Start;
 				break;
 			}
-			case 4: { // number
+			case NumStart: { // number
 				if (isdigit(program[i])) {
 					acc += program[i];
 					i++;
-					state = 5;
+					state = NumMid;
 				} else {
 					fail(state);
 				}
 				break;
 			}
-			case 5: {
+			case NumMid: {
 				if (isdigit(program[i])) {
 					acc += program[i];
 					i++;
 				} else {
-					state = 6;
+					state = NumEnd;
 				}
 				break;
 			}
-			case 6: {
-				Token* tok = new Token;
-				tok->lexeme = acc;
-				tok->line = line;
-				tok->type = TokenType::Integer;
+			case NumEnd: {
+				Token* tok = newToken(acc, TokenType::Integer, line);
 				tokList.push_back(tok);
 				acc = "";
-				state = 0;
+				state = Start;
 				break;
 			}
-			case 7: { // string
+			case StrStart: { // string
 				if (program[i] == '"') {
-					state = 8;
+					state = StrMid;
 					i++;
 				} else {
 					fail(state);
 				}
 				break;
 			}
-			case 8: {
+			case StrMid: {
 				if (program[i] == '"') {
-					state = 9;
+					state = StrEnd;
 				} else {
 					acc += program[i];
 					i++;
@@ -113,68 +150,130 @@ std::vector<Token*> tokenise(std::string program) {
 				}
 				break;
 			}
-			case 9: {
-				Token* tok = new Token;
-				tok->lexeme = acc;
-				tok->line = line;
+			case StrEnd: {
+				Token* tok = newToken(acc, TokenType::String, line);
 				tok->type = TokenType::String;
 				tokList.push_back(tok);
 				acc = "";
-				state = 0;
+				state = Start;
 				i++;
 				break;
 			}
-			case 10: { // +
-				if (program[i] == '+' || program[i] == '-' || program[i] == '*') {
-					acc += program[i];
-					i++;
-					state = 11;
-				} else {
-					fail(state);
+			case OpStart: { // + - *
+				switch (program[i]) {
+					case '+': case '-': case '*': case '=': case ':':
+						acc += program[i];
+						i++;
+						state = OpEnd;
+						break;
+					default:
+						fail(state);
 				}
 				break;
 			}
-			case 11: {
-				Token* tok = new Token;
-				tok->lexeme = acc;
-				tok->line = line;
-				tok->type = TokenType::BinaryOperator;
+			case OpEnd: {
+				Token* tok = newToken(acc, TokenType::BinaryOperator, line);
 				tokList.push_back(tok);
 				acc = "";
-				state = 0;
+				state = Start;
 				break;
 			}
-			case 12: {
+			case CommentStart: { // '/' or comment
 				if (program[i] == '/') {
 					acc += program[i];
 					i++;
-					state = 13;
+					state = CommentMid;
 				} else {
 					fail(state);
 				}
 				break;
 			}
-			case 13: {
+			case CommentMid: {
 				if (program[i] == '/') {
-					state = 14;
+					state = CommentEnd;
 				} else {
-					Token* tok = new Token;
-					tok->lexeme = acc;
-					tok->line = line;
-					tok->type = TokenType::BinaryOperator;
+					Token* tok = newToken(acc, TokenType::BinaryOperator, line);
 					tokList.push_back(tok);
 					acc = "";
-					state = 0;
+					state = Start;
 				}
 				break;
 			}
-			case 14: {
+			case CommentEnd: {
 				if (program[i] == '\n') {
 					acc = "";
-					state = 0;
+					state = Start;
 				} else {
 					i++;
 				}
+				break;
+			}
+			case LParenStart: { // (
+				if (program[i] == '(') {
+					acc += program[i];
+					i++;
+					state = LParenEnd;
+				} else {
+					fail(state);
+				}
+				break;
+			}
+			case LParenEnd: {
+				Token* tok = newToken(acc, TokenType::LeftParen, line);
+				tokList.push_back(tok);
+				acc = "";
+				state = Start;
+				break;
+			}
+			case RParenStart: { // )
+				if (program[i] == ')') {
+					acc += program[i];
+					i++;
+					state = RParenEnd;
+				} else {
+					fail(state);
+				}
+				break;
+			}
+			case RParenEnd: {
+				Token* tok = newToken(acc, TokenType::RightParen, line);
+				tokList.push_back(tok);
+				acc = "";
+				state = Start;
+				break;
+			}
+			case LBraceStart: { // {
+				if (program[i] == '{') {
+					acc += program[i];
+					i++;
+					state = LBraceEnd;
+				} else {
+					fail(state);
+				}
+				break;
+			}
+			case LBraceEnd: {
+				Token* tok = newToken(acc, TokenType::LeftBrace, line);
+				tokList.push_back(tok);
+				acc = "";
+				state = Start;
+				break;
+			}
+			case RBraceStart: { // }
+				if (program[i] == '}') {
+					acc += program[i];
+					i++;
+					state = RBraceEnd;
+				} else {
+					fail(state);
+				}
+				break;
+			}
+			case RBraceEnd: {
+				Token* tok = newToken(acc, TokenType::RightBrace, line);
+				tokList.push_back(tok);
+				acc = "";
+				state = Start;
 				break;
 			}
 			default: {
@@ -183,9 +282,11 @@ std::vector<Token*> tokenise(std::string program) {
 				message += '\'';
 				tokList.push_back(error(message, line));
 				i++;
-				state = 0;
+				state = Start;
 			}
 		}
 	}
 	return tokList;
 };
+
+#endif // LEXER_H
