@@ -38,7 +38,7 @@ ASTNode* parse (vector<Token*> tokList) {
 	parserIdx = 0;
 	parserTok = parseToks[parserIdx];
 
-	root->firstChild = parseExpression();
+	root->firstChild = parseStatementList();
 
 	return root;
 }
