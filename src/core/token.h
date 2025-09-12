@@ -15,6 +15,8 @@ enum TokenType {
 	RightParen,
 	LeftBrace,
 	RightBrace,
+	Semicolon,
+	At,
 
 	Eof,
 
@@ -23,10 +25,10 @@ enum TokenType {
 
 	// Parser Nodes
 	Program,
-	Statement,
-	Expression,
-	Term,
-	Factor
+	CommandStatement,
+	ReturnStatement,
+	ExecuteStatement,
+	ComplexExpression,
 };
 
 string typeToString(TokenType type) {
@@ -41,8 +43,14 @@ string typeToString(TokenType type) {
 		case RightParen: return "RightParen";
 		case LeftBrace: return "LeftBrace";
 		case RightBrace: return "RightBrace";
+		case Semicolon: return "Semicolon";
+		case At: return "At";
 		case SyntaxError: return "SyntaxError";
 		case Program: return "Program";
+		case CommandStatement: return "CommandStatement";
+		case ReturnStatement: return "ReturnStatement";
+		case ExecuteStatement: return "ExecuteStatement";
+		case ComplexExpression: return "ComplexExpression";
 		default: return "Unknown";
 	}
 }

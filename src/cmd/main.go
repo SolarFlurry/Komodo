@@ -20,9 +20,11 @@ func exePath() string {
 
 func main() {
 	// add subcommands
-	cli.AddSubcommand("help", "Get help on the Komodo CLI")
-	cli.AddSubcommand("build", "Compile a .kmd file")
-	cli.AddSubcommand("version", "Display the Komodo version")
+	cli.AddSubcommand("help", "Get help on the Komodo CLI", 0)
+	cli.AddSubcommand("build", "Compile a .kmd file", 1)
+	cli.AddSubcommand("version", "Display the Komodo version", 0)
+	// add flags
+	cli.AddFlag("build", "o", "Controls the output of the compilation")
 
 	cli.Parse()
 
@@ -37,7 +39,6 @@ func main() {
 				fmt.Println(err)
 			}
 		} else {
-			cli.Help()
 			os.Exit(0)
 		}
 
@@ -56,7 +57,7 @@ func main() {
 			os.Exit(1)
 		}
 	case "version":
-		fmt.Println("Komodo v0.1-beta")
+		fmt.Println("Komodo version 0.1-beta")
 	default:
 		cli.Help()
 	}

@@ -1,0 +1,3 @@
+as "@e" if condition {
+	@"say booga booga"
+}

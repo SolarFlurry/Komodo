@@ -1,4 +1,8 @@
-Statement -> Expression | ReturnStmt | ExecuteStmt | CmdStmt
+StatementList -> Statement (StatementList)?
+Statement -> ( Expression | ReturnStmt | ExecuteStmt | CmdStmt ) ';'?
+ExecuteStmt -> ExecuteKeyword Expression Expression
+ExecuteKeyword -> 'if' | 'as' | 'at' | 'in'
+CmdStmt -> '/' Expression
 Expression -> Term (('+' | '-') Expression)?
 Term -> Factor (('*' | '/') Term)?
 Factor -> identifier | number | string | identifier '(' ExpressionList? ')'

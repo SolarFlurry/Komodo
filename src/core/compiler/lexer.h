@@ -37,6 +37,12 @@ enum LexerState {
 	// RBrace
 	RBraceStart,
 	RBraceEnd,
+	// Semicolon
+	SemicolonStart,
+	SemicolonEnd,
+	// At
+	AtStart,
+	AtEnd,
 	// ERROR
 	Unknown
 };
@@ -52,6 +58,8 @@ void fail (LexerState &state) {
 		case LParenStart: state = RParenStart; return;
 		case RParenStart: state = LBraceStart; return;
 		case LBraceStart: state = RBraceStart; return;
+		case RBraceStart: state = SemicolonStart; return;
+		case SemicolonStart: state = AtStart; return;
 		default: state = Unknown;
 	}
 }
@@ -96,7 +104,9 @@ vector<Token*> tokenise(string program) {
 			}
 			case IdEnd: {
 				Token* tok = newToken(acc, TokenType::Identifier, line);
-				if (acc == "glob" || acc == "property" || acc == "const" || acc == "func" || acc == "import" || acc == "if") {
+				if (acc == "glob" || acc == "score" || acc == "const" || acc == "func" ||
+					acc == "import" || acc == "if" || acc == "as" || acc == "at" ||
+					acc == "in" || acc == "return") {
 					tok->type = TokenType::Keyword;
 				}
 				tokList.push_back(tok);
@@ -272,6 +282,40 @@ vector<Token*> tokenise(string program) {
 			}
 			case RBraceEnd: {
 				Token* tok = newToken(acc, TokenType::RightBrace, line);
+				tokList.push_back(tok);
+				acc = "";
+				state = Start;
+				break;
+			}
+			case SemicolonStart: {
+				if (program[i] == ';') {
+					acc += program[i];
+					i++;
+					state = SemicolonEnd;
+				} else {
+					fail(state);
+				}
+				break;
+			}
+			case SemicolonEnd: {
+				Token* tok = newToken(acc, Semicolon, line);
+				tokList.push_back(tok);
+				acc = "";
+				state = Start;
+				break;
+			}
+			case AtStart: {
+				if (program[i] == '@') {
+					acc += program[i];
+					i++;
+					state = AtEnd;
+				} else {
+					fail(state);
+				}
+				break;
+			}
+			case AtEnd: {
+				Token* tok = newToken(acc, At, line);
 				tokList.push_back(tok);
 				acc = "";
 				state = Start;

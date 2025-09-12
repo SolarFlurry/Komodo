@@ -6,17 +6,14 @@ import (
 	"slices"
 )
 
-var registeredSubcommands []subcommand
-
-func AddSubcommand(name string, usage string) {
-	registeredSubcommands = append(registeredSubcommands, subcommand{name, usage})
-}
-
 func Help() {
 	fmt.Println("\nKomodo usage:")
 	fmt.Println("\nSubcommands:")
 	for _, subcmd := range registeredSubcommands {
 		fmt.Printf("\t%s\t\t%s\n", subcmd.Name, subcmd.Usage)
+		for _, flag := range subcmd.Flags {
+			fmt.Printf("\t\t-%s\t\t%s\n", flag.Name, flag.Usage)
+		}
 	}
 	fmt.Println("")
 }
@@ -31,7 +28,7 @@ var flags []string
 var args []string
 
 // subcommand used
-var currentSubcommand string
+var currentSubcommand subcommand
 
 // Parse the arguments
 func Parse() {
@@ -40,17 +37,33 @@ func Parse() {
 		// check if subcommand
 		for _, subc := range registeredSubcommands {
 			if subc.Name == os.Args[1] {
-				currentSubcommand = os.Args[1]
+				currentSubcommand = subc
 				startCheck = 2
 				break
 			}
 		}
+		// check for flags
 		for _, arg := range os.Args[startCheck:] {
 			if arg[0] == '-' {
-				flags = append(flags, arg[1:])
+				var isFlag bool = false
+				for _, flag := range currentSubcommand.Flags {
+					if arg[1:] == flag.Name {
+						flags = append(flags, arg[1:])
+						isFlag = true
+						break
+					}
+				}
+				if !isFlag {
+					fmt.Println("\x1b[33mWARNING: Flag '", arg, "' does not exist.\x1b[0m")
+				}
 			} else {
 				args = append(args, arg)
 			}
+		}
+		if len(args) < currentSubcommand.RequiredArgs {
+			fmt.Println("\x1b[31mERROR: Insufficient arguments\x1b[0m")
+			Help()
+			os.Exit(0)
 		}
 	}
 }
@@ -82,5 +95,5 @@ func HasFlag(flag string) bool {
 
 // Returns the subcommand used, "" if none
 func Subcommand() string {
-	return currentSubcommand
+	return currentSubcommand.Name
 }

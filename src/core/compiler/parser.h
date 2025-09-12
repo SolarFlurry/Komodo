@@ -7,6 +7,9 @@
 
 ASTNode* parseStatementList();
 ASTNode* parseStatement();
+ASTNode* parseCmdStmt();
+ASTNode* parseReturnStmt();
+ASTNode* parseExecuteStmt();
 ASTNode* parseExpression();
 ASTNode* parseTerm();
 ASTNode* parseFactor();
@@ -45,7 +48,7 @@ ASTNode* parse (vector<Token*> tokList) {
 
 // possibly returns nullptr
 ASTNode* parseStatementList() {
-	if (parserTok->type == Eof) {
+	if (parserTok->type == Eof || parserTok->type == RightBrace) {
 		return nullptr;
 	}
 	auto stmt = parseStatement();
@@ -57,7 +60,49 @@ ASTNode* parseStatementList() {
 }
 
 ASTNode* parseStatement() {
-	return parseExpression();
+	ASTNode* stmt = nullptr;
+	if (parserTok->type == At) {
+		stmt = parseCmdStmt();
+	} else if (parserTok->type == Keyword) {
+		if (parserTok->lexeme == "return") {
+			stmt = parseReturnStmt();
+		} else {
+			stmt = parseExecuteStmt();
+		}
+	} else {
+		stmt = parseExpression();
+	}
+	if (parserTok->type == Semicolon) {
+		match(Semicolon);
+	}
+	return stmt;
+}
+
+ASTNode* parseCmdStmt() {
+	match(At);
+	auto cmdNode = newNode(newParseToken(CommandStatement));
+	cmdNode->firstChild = parseExpression();
+	return cmdNode;
+}
+
+ASTNode* parseReturnStmt() {
+	ASTNode* returnNode = newNode(newParseToken(ReturnStatement));
+	match(Keyword, "return");
+	returnNode->firstChild = parseExpression();
+	return returnNode;
+}
+
+ASTNode* parseExecuteStmt() {
+	auto executeNode = newNode(newParseToken(ExecuteStatement));
+	if (parserTok->type == Keyword && (parserTok->lexeme == "if" || parserTok->lexeme == "as" || parserTok->lexeme == "at" || parserTok->lexeme == "in")) {
+		executeNode->firstChild = newNode(parserTok);
+		match(Keyword);
+		executeNode->firstChild->sibling = parseExpression();
+		executeNode->firstChild->sibling->sibling = parseStatement();
+	} else {
+		match(Keyword);
+	}
+	return executeNode;
 }
 
 ASTNode* parseExpression() {
@@ -85,7 +130,7 @@ ASTNode* parseTerm() {
 }
 
 ASTNode* parseFactor () {
-	ASTNode* factor;
+	ASTNode* factor = nullptr;
 	switch (parserTok->type) {
 		case Identifier: {
 			factor = newNode(parserTok);
@@ -93,7 +138,7 @@ ASTNode* parseFactor () {
 			if (parserTok->type == LeftParen) {
 				match(LeftParen);
 				if (parserTok->type != RightParen) {
-					//parserExpressionList()
+					//parseExpressionList()
 				}
 				match(RightParen);
 			}
@@ -113,9 +158,13 @@ ASTNode* parseFactor () {
 		} break;
 		case LeftBrace: {
 			match(LeftBrace);
-			//factor = parseStatementList();
+			factor = newNode(newParseToken(ComplexExpression));
+			auto stmts = parseStatementList();
+			if (stmts != nullptr) {
+				factor->firstChild = stmts;
+			}
 			match(RightBrace);
-		}
+		} break;
 		default:
 			error("Expected expression", parserTok->line);
 			factor = newNode(parserTok);
