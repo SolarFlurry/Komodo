@@ -46,6 +46,7 @@ func main() {
 		cmd.Stdin = file
 
 		var output, err = cmd.Output()
+		fmt.Println(string(output))
 		if err != nil {
 			if exitError, ok := err.(*exec.ExitError); ok {
 				fmt.Printf("transpiler failed: %d\n", exitError.ExitCode())
@@ -54,8 +55,6 @@ func main() {
 			}
 			os.Exit(1)
 		}
-
-		fmt.Println(string(output))
 	case "version":
 		fmt.Println("Komodo v0.1-beta")
 	default:

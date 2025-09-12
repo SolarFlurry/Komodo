@@ -7,6 +7,11 @@ struct ASTNode {
 	Token* content;
 	ASTNode* sibling;
 	ASTNode* firstChild;
+	ASTNode () {
+		content = nullptr;
+		sibling = nullptr;
+		firstChild = nullptr;
+	}
 };
 
 std::string operator* (const string &s, unsigned int n) {
@@ -18,16 +23,16 @@ std::string operator* (const string &s, unsigned int n) {
 }
 
 ASTNode* newNode(Token* tok) {
-	ASTNode* node = new ASTNode;
+	ASTNode* node = new ASTNode();
 	node->content = tok;
 	return node;
 }
 
 void deleteAST(ASTNode* ast) {
-	if (ast->sibling != NULL) {
+	if (ast->sibling != nullptr) {
 		deleteAST(ast->sibling);
 	}
-	if (ast->firstChild != NULL) {
+	if (ast->firstChild != nullptr) {
 		deleteAST(ast->firstChild);
 	}
 	deleteToken(ast->content);

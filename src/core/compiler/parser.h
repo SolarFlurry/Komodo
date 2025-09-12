@@ -33,13 +33,12 @@ void match (TokenType type, string lexeme) {
 
 ASTNode* parse (vector<Token*> tokList) {
 	parseToks = tokList;
-	ASTNode* root = new ASTNode;
-	root->content = new Token;
-	root->content->type = Program;
+	ASTNode* root = new ASTNode();
+	root->content = newToken("", Program, 0);
 	parserIdx = 0;
 	parserTok = parseToks[parserIdx];
 
-	root->firstChild = parseStatementList();
+	root->firstChild = parseExpression();
 
 	return root;
 }
