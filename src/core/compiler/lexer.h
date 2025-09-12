@@ -1,7 +1,8 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "token.h"
+#include "../token.h"
+#include "../error.h"
 
 enum LexerState {
 	Start,
@@ -55,13 +56,13 @@ void fail (LexerState &state) {
 	}
 }
 
-std::vector<Token*> tokenise(std::string program) {
+vector<Token*> tokenise(string program) {
 	program += ' ';
 	unsigned int i = 0;
 	unsigned int line = 0;
 	LexerState state = Start;
-	std::vector<Token*> tokList;
-	std::string acc = "";
+	vector<Token*> tokList;
+	string acc = "";
 
 	while (i < program.length()) {
 		switch (state) {
@@ -145,7 +146,7 @@ std::vector<Token*> tokenise(std::string program) {
 					acc += program[i];
 					i++;
 					if (i >= program.length()) {
-						tokList.push_back(error("Unterminated string ", line));
+						error("Unterminated string ", line);
 					}
 				}
 				break;
@@ -277,15 +278,16 @@ std::vector<Token*> tokenise(std::string program) {
 				break;
 			}
 			default: {
-				std::string message = "Unexpected character '";
+				string message = "Unexpected character '";
 				message += program[i];
 				message += '\'';
-				tokList.push_back(error(message, line));
+				error(message, line);
 				i++;
 				state = Start;
 			}
 		}
 	}
+	tokList.push_back(newToken("EOF", Eof, line));
 	return tokList;
 };
 

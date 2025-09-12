@@ -3,18 +3,33 @@
 #include <string>
 #include <cstddef>
 
-#include "lexer.h"
-#include "parser.h"
+using namespace std;
+
+#include "error.h"
+#include "compiler/lexer.h"
+#include "compiler/parser.h"
 
 int main () {
-	std::string line;
-	std::string program;
-	while (std::getline(std::cin, line)) {
+	string line;
+	string program;
+	
+	while (getline(cin, line)) {
 		program += line + '\n';
 	}
 
-	std::vector<Token*> tokList = tokenise(program);
-	for (int i = 0; i < tokList.size(); i++) {
-		printToken(tokList[i]);
+	vector<Token*> tokList = tokenise(program);
+
+	cout << "\nLexer Errors:\n";
+	for (int i = 0; i < errors.size(); i++) {
+		printToken(errors[i]);
+	}
+	if (errors.size() == 0) {
+		cout << "No Errors!\n\nAbstract Syntax Tree:\n";
+		ASTNode* ast = parse(tokList);
+		printAST(ast, 0);
+	}
+	cout << "\nAll Errors:\n";
+	for (int i = 0; i < errors.size(); i++) {
+		printToken(errors[i]);
 	}
 }
