@@ -8,6 +8,6 @@ score id
 
 func main () {
 	log(hello)
-	/"tp @a 0 0 0"
-	/"say " + hello
+	@"tp @a 0 0 0"
+	@"say " + hello
 }

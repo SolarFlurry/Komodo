@@ -1,3 +1,12 @@
-as "@e" if condition {
-	@"say booga booga"
+const hello = "Hello, World!"
+glob hehe
+score goat
+
+func someFunc() {
+	as "@e" if condition {
+		@"say booga booga"
+	}
+	@"say" + hello;
 }
+
+someFunc();

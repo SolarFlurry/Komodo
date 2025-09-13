@@ -10,6 +10,10 @@ ASTNode* parseStatement();
 ASTNode* parseCmdStmt();
 ASTNode* parseReturnStmt();
 ASTNode* parseExecuteStmt();
+ASTNode* parseVarDeclaration();
+ASTNode* parseAssignStmt();
+ASTNode* parseFunctionDeclaration();
+ASTNode* parseExpressionList();
 ASTNode* parseExpression();
 ASTNode* parseTerm();
 ASTNode* parseFactor();
@@ -66,9 +70,15 @@ ASTNode* parseStatement() {
 	} else if (parserTok->type == Keyword) {
 		if (parserTok->lexeme == "return") {
 			stmt = parseReturnStmt();
+		} else if (parserTok->lexeme == "func") {
+			stmt = parseFunctionDeclaration();
+		} else if (parserTok->lexeme == "const" || parserTok->lexeme == "glob" || parserTok->lexeme == "score") {
+			stmt = parseVarDeclaration();
 		} else {
 			stmt = parseExecuteStmt();
 		}
+	} else if (parserTok->type == Identifier && parseToks[parserIdx+1]->type == BinaryOperator && parseToks[parserIdx+1]->lexeme == "=") {
+		stmt = parseAssignStmt();
 	} else {
 		stmt = parseExpression();
 	}
@@ -105,6 +115,51 @@ ASTNode* parseExecuteStmt() {
 	return executeNode;
 }
 
+ASTNode* parseVarDeclaration() {
+	auto varDec = newNode(newParseToken(VarDeclaration));
+	if (parserTok->type == Keyword && (parserTok->lexeme == "const" || parserTok->lexeme == "glob" || parserTok->lexeme == "score")) {
+		varDec->firstChild = newNode(parserTok);
+		match(Keyword);
+		varDec->firstChild->sibling = newNode(parserTok);
+		match(Identifier);
+		if (parserTok->type == BinaryOperator && parserTok->lexeme == "=") {
+			match(BinaryOperator, "=");
+			varDec->firstChild->sibling->sibling = parseExpression();
+		}
+	} else {
+		match(Keyword);
+	}
+	return varDec;
+}
+
+ASTNode* parseAssignStmt() {
+	auto assignNode = newNode(newParseToken(AssignStatement));
+	assignNode->firstChild = newNode(parserTok);
+	match(BinaryOperator, "=");
+	assignNode->firstChild->sibling = parseExpression();
+	return assignNode;
+}
+
+ASTNode* parseFunctionDeclaration() {
+	match(Keyword, "func");
+	auto funcDec = newNode(newParseToken(FunctionDeclaration));
+	funcDec->firstChild = newNode(parserTok);
+	match(Identifier);
+	match(LeftParen);
+	match(RightParen);
+	funcDec->firstChild->sibling = parseExpression();
+	return funcDec;
+}
+
+ASTNode* parseExpressionList() {
+	auto exprList = parseExpression();
+	if (parserTok->type == Comma) {
+		match(Comma);
+		exprList->sibling = parseExpressionList();
+	}
+	return exprList;
+}
+
 ASTNode* parseExpression() {
 	ASTNode* expr = parseTerm();
 	if (parserTok->type == BinaryOperator && (parserTok->lexeme == "+" || parserTok->lexeme == "-")) {
@@ -136,11 +191,14 @@ ASTNode* parseFactor () {
 			factor = newNode(parserTok);
 			match(Identifier);
 			if (parserTok->type == LeftParen) {
+				auto funcNode = newNode(newParseToken(FunctionCall));
+				funcNode->firstChild = factor;
 				match(LeftParen);
 				if (parserTok->type != RightParen) {
-					//parseExpressionList()
+					factor->sibling = parseExpressionList();
 				}
 				match(RightParen);
+				return funcNode;
 			}
 		} break;
 		case Integer: {

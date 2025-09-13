@@ -43,6 +43,9 @@ enum LexerState {
 	// At
 	AtStart,
 	AtEnd,
+	// Comma
+	CommaStart,
+	CommaEnd,
 	// ERROR
 	Unknown
 };
@@ -60,6 +63,7 @@ void fail (LexerState &state) {
 		case LBraceStart: state = RBraceStart; return;
 		case RBraceStart: state = SemicolonStart; return;
 		case SemicolonStart: state = AtStart; return;
+		case AtStart: state = CommaStart; return;
 		default: state = Unknown;
 	}
 }
@@ -316,6 +320,23 @@ vector<Token*> tokenise(string program) {
 			}
 			case AtEnd: {
 				Token* tok = newToken(acc, At, line);
+				tokList.push_back(tok);
+				acc = "";
+				state = Start;
+				break;
+			}
+			case CommaStart: {
+				if (program[i] == ',') {
+					acc += program[i];
+					i++;
+					state = CommaEnd;
+				} else {
+					fail(state);
+				}
+				break;
+			}
+			case CommaEnd: {
+				Token* tok = newToken(acc, Comma, line);
 				tokList.push_back(tok);
 				acc = "";
 				state = Start;

@@ -17,6 +17,7 @@ enum TokenType {
 	RightBrace,
 	Semicolon,
 	At,
+	Comma,
 
 	Eof,
 
@@ -28,6 +29,10 @@ enum TokenType {
 	CommandStatement,
 	ReturnStatement,
 	ExecuteStatement,
+	VarDeclaration,
+	AssignStatement,
+	FunctionCall,
+	FunctionDeclaration,
 	ComplexExpression,
 };
 
@@ -45,11 +50,16 @@ string typeToString(TokenType type) {
 		case RightBrace: return "RightBrace";
 		case Semicolon: return "Semicolon";
 		case At: return "At";
+		case Comma: return "Comma";
 		case SyntaxError: return "SyntaxError";
 		case Program: return "Program";
 		case CommandStatement: return "CommandStatement";
 		case ReturnStatement: return "ReturnStatement";
 		case ExecuteStatement: return "ExecuteStatement";
+		case VarDeclaration: return "VarDeclaration";
+		case AssignStatement: return "AssignStatement";
+		case FunctionCall: return "FunctionCall";
+		case FunctionDeclaration: return "FunctionDeclaration";
 		case ComplexExpression: return "ComplexExpression";
 		default: return "Unknown";
 	}

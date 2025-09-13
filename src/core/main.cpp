@@ -8,6 +8,7 @@ using namespace std;
 #include "error.h"
 #include "compiler/lexer.h"
 #include "compiler/parser.h"
+#include "codegen/gen.h"
 
 int main () {
 	string line;

@@ -7,8 +7,7 @@ WIP
 ### Dependencies:
 - Golang
 - CMake
-- C++ Compiler
-- VSCode (optional)
+- C++ Compiler (C++23 or later)
 
 Command Line - Windows
 ```sh

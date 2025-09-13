@@ -1,6 +1,9 @@
 StatementList -> Statement (StatementList)?
-Statement -> ( Expression | ReturnStmt | ExecuteStmt | CmdStmt ) ';'?
+Statement -> ( Expression | ReturnStmt | ExecuteStmt | CmdStmt | VarDeclaration | AssignStmt ) ';'?
 ExecuteStmt -> ExecuteKeyword Expression Expression
+VarDeclaration -> VarKeyword identifier ('=' Expression)?
+AssignStmt -> identifier '=' Expression
+FuncDeclaration -> 'func' identifier '(' ')' Expression
 ExecuteKeyword -> 'if' | 'as' | 'at' | 'in'
 CmdStmt -> '/' Expression
 Expression -> Term (('+' | '-') Expression)?
