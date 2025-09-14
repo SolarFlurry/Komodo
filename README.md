@@ -26,3 +26,9 @@ bash scripts/build.sh
 ```
 
 After building, you must set the `KOMODO_ENV` environment variable to the path of `kmdlib` inside the project directory.
+
+## TODO:
+- Constant variables
+- Function parameters
+- Tick functions
+- more but i cant think right now

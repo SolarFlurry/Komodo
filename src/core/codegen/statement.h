@@ -21,6 +21,8 @@ string genStatement(ASTNode* stmt) {
 		return genStatementList(stmt->firstChild);
 	} else if (stmt->content->type == VarDeclaration) {
 		return genVarDeclaration(stmt);
+	} else if (stmt->content->type == FunctionDeclaration) {
+		return genFuncDeclaration(stmt);
 	} else {
 		auto [instr, type] = genExpression(stmt);
 		return instr;

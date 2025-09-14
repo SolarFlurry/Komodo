@@ -78,6 +78,8 @@ pair<string, TokenType> genFactor(ASTNode* factor, char reg) {
 			fatalError("Variable is not defined");
 			return {"", SyntaxError};
 		}
+	} else if (factor->content->type == FunctionCall) {
+		return {genFunctionCall(factor), Integer};
 	} else {
 		return {factor->content->lexeme, factor->content->type};
 	}

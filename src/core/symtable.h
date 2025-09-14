@@ -8,7 +8,8 @@ enum IdType {
 	Global,
 	Constant,
 	Score,
-	Function
+	Function,
+	Argument
 };
 
 string idTypeToString(IdType type) {

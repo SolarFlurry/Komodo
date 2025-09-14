@@ -8,12 +8,15 @@
 
 #include "gen.h"
 
+#include "function.h"
 #include "execute.h"
 #include "statement.h"
 #include "expression.h"
 
+const char* KOMODO_ENV;
+
 string codeGen(ASTNode* ast) {
-	const char* KOMODO_ENV = getenv("KOMODO_ENV");
+	KOMODO_ENV = getenv("KOMODO_ENV");
 	if (KOMODO_ENV == nullptr) {
 		cout << "\x1b[31mFATAL ERROR: Missing environment variable KOMODO_ENV\x1b[0m\n";
 		exit(0);
@@ -30,9 +33,19 @@ string codeGen(ASTNode* ast) {
 	}
 
 	inputFile.close();
-	cout << "\nCode Generation:\n";
+
+	filesystem::create_directory("functions");
+
 	main += genStatementList(ast->firstChild);
-	cout << main << "\n";
+
+	ofstream outputFile("functions/main.mcfunction");
+	if (!outputFile.is_open()) {
+		cout << "\x1b[31mFATAL ERROR: Could not write to main.mcfunction\x1b[0m\n";
+		exit(0);
+	}
+	outputFile << main;
+	outputFile.close();
+	
 	return main;
 }
 

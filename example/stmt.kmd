@@ -5,10 +5,10 @@ score goat
 glob condition = 1;
 
 func someFunc() {
-	as "@e" if condition {
+	as "@e" if "condition" {
 		@"say booga booga"
 	}
-	@"say" + hello;
+	@"say " + "Hello, World!";
 }
 
 someFunc();

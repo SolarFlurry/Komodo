@@ -13,6 +13,7 @@ ASTNode* parseReturnStmt();
 ASTNode* parseExecuteStmt();
 ASTNode* parseVarDeclaration();
 ASTNode* parseAssignStmt();
+ASTNode* parseParameterList();
 ASTNode* parseFunctionDeclaration();
 ASTNode* parseExpressionList();
 ASTNode* parseExpression();
@@ -157,6 +158,24 @@ ASTNode* parseAssignStmt() {
 	return assignNode;
 }
 
+ASTNode* parseParameterList() {
+	ASTNode* paramList = newNode(parserTok);
+	auto symtabId = symtabLookup(parserTok->lexeme);
+	if (symtabId == nullptr) {
+		error("Unknown identifier", parserTok->line);
+	}
+	if (symtabId->type != Uninitialised) {
+		symtabId = new symtableEntry(parserTok->lexeme, Argument);
+		symtabAdd(symtabId);
+	}
+	symtabId->type = Argument;
+	if (parserTok->type == Comma) {
+		match(Comma);
+		paramList->sibling = parseParameterList();
+	}
+	return paramList;
+}
+
 ASTNode* parseFunctionDeclaration() {
 	match(Keyword, "func");
 	auto funcDec = newNode(newParseToken(FunctionDeclaration));
@@ -171,8 +190,15 @@ ASTNode* parseFunctionDeclaration() {
 
 	match(Identifier);
 	match(LeftParen);
-	match(RightParen);
-	funcDec->firstChild->sibling = parseExpression();
+	if (parserTok->type != RightParen) {
+		funcDec->firstChild->sibling = newNode(newParseToken(ParameterList));
+		funcDec->firstChild->sibling->firstChild = parseParameterList();
+		match(RightParen);
+		funcDec->firstChild->sibling->sibling = parseExpression();
+	} else {
+		match(RightParen);
+		funcDec->firstChild->sibling = parseExpression();
+	}
 	return funcDec;
 }
 

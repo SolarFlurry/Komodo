@@ -32,6 +32,7 @@ enum TokenType {
 	VarDeclaration,
 	AssignStatement,
 	FunctionCall,
+	ParameterList,
 	FunctionDeclaration,
 	ComplexExpression,
 };
