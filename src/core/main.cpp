@@ -2,13 +2,17 @@
 #include <vector>
 #include <string>
 #include <cstddef>
+#include <utility>
+#include <fstream>
+#include <filesystem>
 
 using namespace std;
 
 #include "error.h"
+#include "symtable.h"
 #include "compiler/lexer.h"
 #include "compiler/parser.h"
-#include "codegen/gen.h"
+#include "codegen/gen.cpp"
 
 int main () {
 	string line;
@@ -32,8 +36,13 @@ int main () {
 		cout << "No Errors!\n\nAbstract Syntax Tree:\n";
 		ASTNode* ast = parse(tokList);
 		printAST(ast, 0);
+		cout << "\nSymbol Table:\n";
+		printSymtable();
+		if (errors.size() == 0) {
+			auto _ = codeGen(ast);
+		}
 	}
-	cout << "\nAll Errors:\n";
+	cout << "All Errors:\n";
 	if (errors.size() == 0) {
 		cout << "No Errors!\n";
 	}

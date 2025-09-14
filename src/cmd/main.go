@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/SolarFlurry/Komodo/src/cmd/cli"
 )
@@ -34,7 +35,11 @@ func main() {
 
 		if cli.NArg() > 0 {
 			var err error
-			file, err = os.Open(cli.Arg(0) + ".kmd")
+			var filepath = cli.Arg(0)
+			if !strings.HasSuffix(filepath, ".kmd") {
+				filepath += ".kmd"
+			}
+			file, err = os.Open(filepath)
 			if err != nil {
 				fmt.Println(err)
 			}

@@ -3,6 +3,7 @@
 
 #include "../token.h"
 #include "../error.h"
+#include "../symtable.h"
 
 enum LexerState {
 	Start,
@@ -112,6 +113,11 @@ vector<Token*> tokenise(string program) {
 					acc == "import" || acc == "if" || acc == "as" || acc == "at" ||
 					acc == "in" || acc == "return") {
 					tok->type = TokenType::Keyword;
+				} else {
+					auto exists = symtabLookup(acc);
+					if (exists == nullptr) {
+						symtabAdd(new symtableEntry(acc));
+					}
 				}
 				tokList.push_back(tok);
 				acc = "";

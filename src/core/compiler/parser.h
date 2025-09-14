@@ -4,6 +4,7 @@
 #include "../token.h"
 #include "../ast.h"
 #include "../error.h"
+#include "../symtable.h"
 
 ASTNode* parseStatementList();
 ASTNode* parseStatement();
@@ -24,7 +25,10 @@ vector<Token*> parseToks;
 
 void match (TokenType type) {
 	if (parserTok->type != type) {
-		error("Unexpected token", parserTok->line);
+		string msg = "Unexpected token '";
+		msg += parserTok->lexeme;
+		msg += "'";
+		error(msg, parserTok->line);
 	}
 	parserIdx++;
 	parserTok = parseToks[parserIdx];
@@ -32,7 +36,10 @@ void match (TokenType type) {
 
 void match (TokenType type, string lexeme) {
 	if (parserTok->type != type && parserTok->lexeme != lexeme) {
-		error("Unexpected token", parserTok->line);
+		string msg = "Unexpected token '";
+		msg += parserTok->lexeme;
+		msg += "'";
+		error(msg, parserTok->line);
 	}
 	parserIdx++;
 	parserTok = parseToks[parserIdx];
@@ -121,6 +128,16 @@ ASTNode* parseVarDeclaration() {
 		varDec->firstChild = newNode(parserTok);
 		match(Keyword);
 		varDec->firstChild->sibling = newNode(parserTok);
+		symtableEntry* identifier = symtabLookup(parserTok->lexeme);
+		if (identifier == nullptr) {
+			error("Unknown identifier", parserTok->line);
+		} else if (parseToks[parserIdx-1]->lexeme == "const") {
+			identifier->type = Constant;
+		} else if (parseToks[parserIdx-1]->lexeme == "glob") {
+			identifier->type = Global;
+		} else if (parseToks[parserIdx-1]->lexeme == "score") {
+			identifier->type = Score;
+		}
 		match(Identifier);
 		if (parserTok->type == BinaryOperator && parserTok->lexeme == "=") {
 			match(BinaryOperator, "=");
@@ -144,6 +161,14 @@ ASTNode* parseFunctionDeclaration() {
 	match(Keyword, "func");
 	auto funcDec = newNode(newParseToken(FunctionDeclaration));
 	funcDec->firstChild = newNode(parserTok);
+
+	symtableEntry* identifier = symtabLookup(parserTok->lexeme);
+	if (identifier == nullptr) {
+		error("Unknown identifier", parserTok->line);
+	} else {
+		identifier->type = Function;
+	}
+
 	match(Identifier);
 	match(LeftParen);
 	match(RightParen);
@@ -189,6 +214,13 @@ ASTNode* parseFactor () {
 	switch (parserTok->type) {
 		case Identifier: {
 			factor = newNode(parserTok);
+			auto identifier = symtabLookup(parserTok->lexeme);
+			if (identifier == nullptr || identifier->type == Uninitialised) {
+				string msg = "Variable '";
+				msg += parserTok->lexeme;
+				msg += "' does not exist";
+				error(msg, parserTok->line);
+			}
 			match(Identifier);
 			if (parserTok->type == LeftParen) {
 				auto funcNode = newNode(newParseToken(FunctionCall));
