@@ -64,6 +64,6 @@ func main() {
 	case "version":
 		fmt.Println("Komodo version 0.1-beta")
 	default:
-		cli.Help()
+		fmt.Println("Use 'komodo help' to get help on Komodo")
 	}
 }

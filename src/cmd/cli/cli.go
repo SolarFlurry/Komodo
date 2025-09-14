@@ -7,12 +7,12 @@ import (
 )
 
 func Help() {
-	fmt.Println("\nKomodo usage:")
-	fmt.Println("\nSubcommands:")
+	fmt.Println("\nkomodo <command> <flags>")
+	fmt.Print("\nUsage:\n\n")
 	for _, subcmd := range registeredSubcommands {
-		fmt.Printf("\t%s\t\t%s\n", subcmd.Name, subcmd.Usage)
+		fmt.Printf("%s\t\t\t%s\n", subcmd.Name, subcmd.Usage)
 		for _, flag := range subcmd.Flags {
-			fmt.Printf("\t\t-%s\t\t%s\n", flag.Name, flag.Usage)
+			fmt.Printf("\t-%s\t%s\n", flag.Name, flag.Usage)
 		}
 	}
 	fmt.Println("")
@@ -62,7 +62,6 @@ func Parse() {
 		}
 		if len(args) < currentSubcommand.RequiredArgs {
 			fmt.Println("\x1b[31mERROR: Insufficient arguments\x1b[0m")
-			Help()
 			os.Exit(0)
 		}
 	}
