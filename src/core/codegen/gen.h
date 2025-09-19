@@ -17,8 +17,10 @@ string genStatement(ASTNode* stmt);
 string genCmdStmt(ASTNode* stmt);
 string genExecuteStmt(ASTNode* stmt);
 string genVarDeclaration(ASTNode* stmt);
+string genAssignStatement(ASTNode* stmt);
 
 string genFuncDeclaration(ASTNode* stmt);
 string genFunctionCall(ASTNode* stmt);
+string genFunctionArguments(ASTNode* stmt, int index);
 
 #endif // GEN_H

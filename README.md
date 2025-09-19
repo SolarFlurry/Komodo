@@ -29,6 +29,8 @@ After building, you must set the `KOMODO_ENV` environment variable to the path o
 
 ## TODO:
 - Constant variables
-- Function parameters
 - Tick functions
+- Variable scope
+- Float and boolean type support
+- Comparison and logic operatos
 - more but i cant think right now

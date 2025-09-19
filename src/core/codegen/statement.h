@@ -23,6 +23,8 @@ string genStatement(ASTNode* stmt) {
 		return genVarDeclaration(stmt);
 	} else if (stmt->content->type == FunctionDeclaration) {
 		return genFuncDeclaration(stmt);
+	} else if (stmt->content->type == AssignStatement) {
+		return genAssignStatement(stmt);
 	} else {
 		auto [instr, type] = genExpression(stmt);
 		return instr;
@@ -58,16 +60,46 @@ string genVarDeclaration(ASTNode* stmt) {
 	}
 	instr += cmd;
 	instr += checkExecute();
+	auto symtabId = symtabLookup(stmt->firstChild->sibling->content->lexeme);
 	if (stmt->firstChild->content->lexeme == "score") {
 		instr += "scoreboard players operation @e ";
 		instr += stmt->firstChild->sibling->content->lexeme;
 		instr += " = R0 .komodo";
 	} else {
 		instr += "scoreboard players operation ";
-		instr += stmt->firstChild->sibling->content->lexeme;
+		instr += symtabId->genName;
 		instr += " .global = R0 .komodo";
 	}
 	instr += '\n';
+	return instr;
+}
+
+string genAssignStatement(ASTNode* stmt) {
+	if (stmt->content->type != AssignStatement) {
+		fatalError("not an assign statement");
+		return "";
+	}
+	auto [instr, type] = genExpression(stmt->firstChild->sibling);
+	instr += checkExecute();
+	instr += "scoreboard players operation ";
+	auto symtabId = symtabLookup(stmt->firstChild->content->lexeme);
+	if (type != symtabId->type) {
+		fatalError("mismatched types");
+	}
+	if (symtabId == nullptr) {
+		fatalError("variable does not exist");
+	}
+	if (symtabId->varType == Score) {
+		instr += "@s ";
+		instr += symtabId->genName;
+	} else if (symtabId->varType == Global) {
+		instr += symtabId->genName;
+		instr += " .global";
+	} else {
+		fatalError("cannot assign to variable");
+		return "";
+	}
+	instr += " = R0 .komodo\n";
 	return instr;
 }
 

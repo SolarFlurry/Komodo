@@ -53,27 +53,36 @@ pair<string, TokenType> genFactor(ASTNode* factor, char reg) {
 		instr += '\n';
 		return {instr, factor->content->type};
 	} else if (factor->content->type == Identifier) {
-		auto symtableId = symtabLookup(factor->content->lexeme);
-		if (symtableId == nullptr) {
+		auto symtabId = symtabLookup(factor->content->lexeme);
+		if (symtabId == nullptr) {
 			fatalError("Variable is not defined");
 		}
-		if (symtableId->type == Global) {
+		if (symtabId->varType == Global) {
 			string instr = checkExecute();
 			instr += "scoreboard players operation R";
 			instr += reg;
 			instr += " .komodo = ";
-			instr += factor->content->lexeme;
+			instr += symtabId->genName;
 			instr += " .global";
 			instr += '\n';
-			return {instr, factor->content->type};
-		} else if (symtableId->type == Score) {
+			return {instr, symtabId->type};
+		} else if (symtabId->varType == Score) {
 			string instr = checkExecute();
 			instr += "scoreboard players operation R";
 			instr += reg;
 			instr += " .komodo = @s";
-			instr += factor->content->lexeme;
+			instr += symtabId->genName;
 			instr += '\n';
-			return {instr, factor->content->type};
+			return {instr, symtabId->type};
+		} else if (symtabId->varType == Argument) {
+			string instr = checkExecute();
+			instr += "scoreboard players operation R";
+			instr += reg;
+			instr += " .komodo = ";
+			instr += symtabId->genName;
+			instr += " .komodo";
+			instr += '\n';
+			return {instr, symtabId->type};
 		} else {
 			fatalError("Variable is not defined");
 			return {"", SyntaxError};

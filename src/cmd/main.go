@@ -61,6 +61,8 @@ func main() {
 			}
 			os.Exit(1)
 		}
+	case "help":
+		cli.Help()
 	case "version":
 		fmt.Println("Komodo version 0.1-beta")
 	default:

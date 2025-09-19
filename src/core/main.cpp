@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include <string>
 #include <cstddef>
 #include <utility>
@@ -29,7 +30,10 @@ int main () {
 	if (errors.size() == 0) {
 		cout << "No Errors!\n";
 		ASTNode* ast = parse(tokList);
+		cout << "Parser Errors:\n";
+		printErrors();
 		if (errors.size() == 0) {
+			cout << "No Errors!\n";
 			auto _ = codeGen(ast);
 		}
 	}

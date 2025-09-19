@@ -80,7 +80,7 @@ vector<Token*> tokenise(string program) {
 	while (i < program.length()) {
 		switch (state) {
 			case Start: { // starting
-				if (isspace(program[i] || program[i])) {
+				if (isspace(program[i])) {
 					if (program[i] == '\n') line++;
 					i++;
 				} else {
@@ -111,13 +111,8 @@ vector<Token*> tokenise(string program) {
 				Token* tok = newToken(acc, TokenType::Identifier, line);
 				if (acc == "glob" || acc == "score" || acc == "const" || acc == "func" ||
 					acc == "import" || acc == "if" || acc == "as" || acc == "at" ||
-					acc == "in" || acc == "return" || acc == "tick") {
+					acc == "in" || acc == "return" || acc == "tick" || acc == "int") {
 					tok->type = TokenType::Keyword;
-				} else {
-					auto exists = symtabLookup(acc);
-					if (exists == nullptr) {
-						symtabAdd(new symtableEntry(acc));
-					}
 				}
 				tokList.push_back(tok);
 				acc = "";

@@ -8,10 +8,19 @@ string genFuncDeclaration(ASTNode* stmt) {
 	string func;
 	string funcName = stmt->firstChild->content->lexeme;
 
-	if (stmt->firstChild->sibling->content->type == ComplexExpression) {
-		func = genStatementList(stmt->firstChild->sibling->firstChild);
+	ASTNode* funcContent;
+	if (stmt->firstChild->sibling->content->type == ParameterList) {
+		funcContent = stmt->firstChild->sibling->sibling;
 	} else {
-		auto [cmd, type] = genExpression(stmt->firstChild->sibling);
+		funcContent = stmt->firstChild->sibling;
+	}
+
+	if (funcContent->content->type == ComplexExpression) {
+		if (funcContent->firstChild != nullptr) {
+			func = genStatementList(funcContent->firstChild);
+		}
+	} else {
+		auto [cmd, type] = genExpression(funcContent);
 		if (type != Integer) {
 			fatalError("Expected integer type");
 		}
@@ -37,13 +46,29 @@ string genFunctionCall(ASTNode* stmt) {
 		fatalError("not a function call");
 	}
 	auto symtabId = symtabLookup(stmt->firstChild->content->lexeme);
-	if (symtabId == nullptr || symtabId->type != Function) {
+	if (symtabId == nullptr || symtabId->varType != Function) {
 		fatalError("identifier does not exist");
 	}
-	string instr = checkExecute();
+	string instr;
+	if (stmt->firstChild->firstChild != nullptr) {
+		instr = genFunctionArguments(stmt->firstChild->firstChild, 0);
+	}
+	instr += checkExecute();
 	instr += "function ";
 	instr += stmt->firstChild->content->lexeme;
 	instr += '\n';
+	return instr;
+}
+
+string genFunctionArguments(ASTNode* stmt, int index) {
+	auto [instr, type] = genExpression(stmt);
+	instr += checkExecute();
+	instr += "scoreboard players operation ";
+	instr += "arg" + to_string(index);
+	instr += " .komodo = RO .komodo\n";
+	if (stmt->sibling != nullptr) {
+		instr += genFunctionArguments(stmt->sibling, index + 1);
+	}
 	return instr;
 }
 

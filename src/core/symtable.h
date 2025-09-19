@@ -24,31 +24,42 @@ string idTypeToString(IdType type) {
 }
 
 struct symtableEntry {
-	string identifier;
-	IdType type;
-	symtableEntry(string ident, IdType type) : identifier(ident), type(type) {}
-	symtableEntry(string ident) : identifier(ident), type(Uninitialised) {}
+	IdType varType;
+	TokenType type;
+	string genName;
+
+	symtableEntry(IdType type) : varType(type) {}
 };
 
-vector<symtableEntry*> symtable;
+unordered_map<string, symtableEntry*> symtable;
 
-void symtabAdd(symtableEntry* entry) {
-	symtable.push_back(entry);
+void symtabAdd(string id, symtableEntry* entry) {
+	symtable.insert({id, entry});
 }
 
-symtableEntry* symtabLookup(string identifier) {
-	for (symtableEntry* entry : symtable) {
-		if (entry->identifier == identifier) {
-			return entry;
-		}
+symtableEntry* symtabLookup(string id) {
+	symtableEntry* result;
+	try {
+		result = symtable.at(id);
+	} catch (out_of_range e) {
+		return nullptr;
 	}
-	return nullptr;
+	return result;
 }
 
-void printSymtable() {
-	for (symtableEntry* entry : symtable) {
-		cout << "\"" << entry->identifier << "\"\t" << idTypeToString(entry->type) << "\n";
+bool varExists (string id) {
+	return symtabLookup(id) != nullptr; 
+}
+/*
+void newScope() {
+	symtable.push_back(unordered_map<string, symtableEntry*>());
+}
+
+void deleteScope () {
+	for (auto i : symtable.back()) {
+		delete i.second;
 	}
+	symtable.pop_back();
 }
-
+*/
 #endif // SYMTABLE_H

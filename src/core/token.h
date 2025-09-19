@@ -35,6 +35,7 @@ enum TokenType {
 	ParameterList,
 	FunctionDeclaration,
 	ComplexExpression,
+	Variable
 };
 
 string typeToString(TokenType type) {
@@ -62,6 +63,7 @@ string typeToString(TokenType type) {
 		case FunctionCall: return "FunctionCall";
 		case FunctionDeclaration: return "FunctionDeclaration";
 		case ComplexExpression: return "ComplexExpression";
+		case Variable: return "Variable";
 		default: return "Unknown";
 	}
 }
@@ -92,6 +94,10 @@ void deleteToken(Token* tok) {
 
 void printToken (struct Token* tok) {
     cout << "<\x1b[0;33m\"" << tok->lexeme << "\"\x1b[0m, \x1b[0;32m" << typeToString(tok->type) << "\x1b[0m, Line \x1b[0;36m" << tok->line << "\x1b[0m>\n";
+}
+
+bool isTypeKeyword (Token* tok) {
+	return tok->type == Keyword && tok->lexeme == "int";
 }
 
 #endif //TOKEN_H

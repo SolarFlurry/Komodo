@@ -1,7 +1,7 @@
 StatementList -> Statement (StatementList)?
 Statement -> ( Expression | ReturnStmt | ExecuteStmt | CmdStmt | VarDeclaration | AssignStmt ) ';'?
 ExecuteStmt -> ExecuteKeyword Expression Expression
-VarDeclaration -> VarKeyword identifier ('=' Expression)?
+VarDeclaration -> VarKeyword identifier (type)? ('=' Expression)?
 AssignStmt -> identifier '=' Expression
 FuncDeclaration -> 'func' identifier '(' ')' Expression
 ExecuteKeyword -> 'if' | 'as' | 'at' | 'in'

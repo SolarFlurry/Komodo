@@ -1,10 +1,7 @@
-glob condition = 9
+glob global = 0;
 
-@"say Hello," + " World!";
-
-as "@e[type=zombie]" @"say GRR";
-
-as "@e" if "score condition .global matches 1.." {
-	@"say condition met"
-	@"give @s diamond 64";
+func someFunc(param) {
+	global = global + param;
 }
+
+someFunc(2, 3, 1);

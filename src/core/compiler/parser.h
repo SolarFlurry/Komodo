@@ -13,7 +13,7 @@ ASTNode* parseReturnStmt();
 ASTNode* parseExecuteStmt();
 ASTNode* parseVarDeclaration();
 ASTNode* parseAssignStmt();
-ASTNode* parseParameterList();
+ASTNode* parseParameterList(int index);
 ASTNode* parseFunctionDeclaration();
 ASTNode* parseExpressionList();
 ASTNode* parseExpression();
@@ -47,6 +47,7 @@ void match (TokenType type, string lexeme) {
 }
 
 ASTNode* parse (vector<Token*> tokList) {
+	//newScope();
 	parseToks = tokList;
 	ASTNode* root = new ASTNode();
 	root->content = newToken("", Program, 0);
@@ -129,17 +130,24 @@ ASTNode* parseVarDeclaration() {
 		varDec->firstChild = newNode(parserTok);
 		match(Keyword);
 		varDec->firstChild->sibling = newNode(parserTok);
-		symtableEntry* identifier = symtabLookup(parserTok->lexeme);
-		if (identifier == nullptr) {
-			error("Unknown identifier", parserTok->line);
-		} else if (parseToks[parserIdx-1]->lexeme == "const") {
-			identifier->type = Constant;
+		symtableEntry* symtabId = new symtableEntry(Uninitialised);
+		symtabId->genName = parserTok->lexeme;
+		symtabAdd(parserTok->lexeme, symtabId);
+		if (parseToks[parserIdx-1]->lexeme == "const") {
+			symtabId->varType = Constant;
 		} else if (parseToks[parserIdx-1]->lexeme == "glob") {
-			identifier->type = Global;
+			symtabId->varType = Global;
 		} else if (parseToks[parserIdx-1]->lexeme == "score") {
-			identifier->type = Score;
+			symtabId->varType = Score;
 		}
 		match(Identifier);
+		if (isTypeKeyword(parserTok)) {
+			if (parserTok->lexeme == "int") {
+				symtabId->type = Integer;
+			}
+		} else {
+			symtabId->type = Integer;
+		}
 		if (parserTok->type == BinaryOperator && parserTok->lexeme == "=") {
 			match(BinaryOperator, "=");
 			varDec->firstChild->sibling->sibling = parseExpression();
@@ -153,25 +161,21 @@ ASTNode* parseVarDeclaration() {
 ASTNode* parseAssignStmt() {
 	auto assignNode = newNode(newParseToken(AssignStatement));
 	assignNode->firstChild = newNode(parserTok);
+	match(Identifier);
 	match(BinaryOperator, "=");
 	assignNode->firstChild->sibling = parseExpression();
 	return assignNode;
 }
 
-ASTNode* parseParameterList() {
+ASTNode* parseParameterList(int index) {
 	ASTNode* paramList = newNode(parserTok);
-	auto symtabId = symtabLookup(parserTok->lexeme);
-	if (symtabId == nullptr) {
-		error("Unknown identifier", parserTok->line);
-	}
-	if (symtabId->type != Uninitialised) {
-		symtabId = new symtableEntry(parserTok->lexeme, Argument);
-		symtabAdd(symtabId);
-	}
-	symtabId->type = Argument;
+	auto symtabId = new symtableEntry(Argument);
+	symtabId->genName = "arg" + to_string(index);
+	symtabAdd(parserTok->lexeme, symtabId);
+	match(Identifier);
 	if (parserTok->type == Comma) {
 		match(Comma);
-		paramList->sibling = parseParameterList();
+		paramList->sibling = parseParameterList(index + 1);
 	}
 	return paramList;
 }
@@ -181,18 +185,19 @@ ASTNode* parseFunctionDeclaration() {
 	auto funcDec = newNode(newParseToken(FunctionDeclaration));
 	funcDec->firstChild = newNode(parserTok);
 
-	symtableEntry* identifier = symtabLookup(parserTok->lexeme);
-	if (identifier == nullptr) {
-		error("Unknown identifier", parserTok->line);
-	} else {
-		identifier->type = Function;
+	if (varExists(parserTok->lexeme)) {
+		error("Variable already declared", parserTok->line);
 	}
+
+	symtableEntry* symtabId = new symtableEntry(Uninitialised);
+	symtabId->varType = Function;
+	symtabAdd(parserTok->lexeme, symtabId);
 
 	match(Identifier);
 	match(LeftParen);
 	if (parserTok->type != RightParen) {
 		funcDec->firstChild->sibling = newNode(newParseToken(ParameterList));
-		funcDec->firstChild->sibling->firstChild = parseParameterList();
+		funcDec->firstChild->sibling->firstChild = parseParameterList(0);
 		match(RightParen);
 		funcDec->firstChild->sibling->sibling = parseExpression();
 	} else {
@@ -241,7 +246,7 @@ ASTNode* parseFactor () {
 		case Identifier: {
 			factor = newNode(parserTok);
 			auto identifier = symtabLookup(parserTok->lexeme);
-			if (identifier == nullptr || identifier->type == Uninitialised) {
+			if (identifier == nullptr || identifier->varType == Uninitialised) {
 				string msg = "Variable '";
 				msg += parserTok->lexeme;
 				msg += "' does not exist";
@@ -253,7 +258,7 @@ ASTNode* parseFactor () {
 				funcNode->firstChild = factor;
 				match(LeftParen);
 				if (parserTok->type != RightParen) {
-					factor->sibling = parseExpressionList();
+					factor->firstChild = parseExpressionList();
 				}
 				match(RightParen);
 				return funcNode;
