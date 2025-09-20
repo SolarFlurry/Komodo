@@ -73,6 +73,7 @@ vector<Token*> tokenise(string program) {
 	program += ' ';
 	unsigned int i = 0;
 	unsigned int line = 0;
+	unsigned int lineIdx = 0;
 	LexerState state = Start;
 	vector<Token*> tokList;
 	string acc = "";
@@ -81,7 +82,7 @@ vector<Token*> tokenise(string program) {
 		switch (state) {
 			case Start: { // starting
 				if (isspace(program[i])) {
-					if (program[i] == '\n') line++;
+					if (program[i] == '\n') {line++; lineIdx = 0;}
 					i++;
 				} else {
 					fail(state);
@@ -139,7 +140,7 @@ vector<Token*> tokenise(string program) {
 				break;
 			}
 			case NumEnd: {
-				Token* tok = newToken(acc, TokenType::Integer, line);
+				Token* tok = newToken(acc, TokenType::Integer, line, i - lineIdx);
 				tokList.push_back(tok);
 				acc = "";
 				state = Start;

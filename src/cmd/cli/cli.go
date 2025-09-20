@@ -61,7 +61,7 @@ func Parse() {
 			}
 		}
 		if len(args) < currentSubcommand.RequiredArgs {
-			fmt.Println("\x1b[31mERROR: Insufficient arguments\x1b[0m")
+			fmt.Println("\x1b[31mError: Insufficient arguments\x1b[0m")
 			os.Exit(0)
 		}
 	}

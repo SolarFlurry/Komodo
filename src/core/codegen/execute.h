@@ -28,7 +28,7 @@ string genExecuteStmt (ASTNode* stmt) {
 	execute += ' ';
 	auto [cmd, type] = genExpression(stmt->firstChild->sibling);
 	if (type != String) {
-		fatalError("Expected string");
+		fatalError("Expected string", stmt->firstChild->sibling->content->line);
 	}
 	execute += cmd;
 	executeChain.push_back(execute);

@@ -41,7 +41,8 @@ func main() {
 			}
 			file, err = os.Open(filepath)
 			if err != nil {
-				fmt.Println(err)
+				fmt.Println("\x1b[31mError: '" + filepath + "' does not exist")
+				os.Exit(0)
 			}
 		} else {
 			os.Exit(0)
@@ -51,13 +52,15 @@ func main() {
 		var cmd = exec.Command(transpilerPath)
 		cmd.Stdin = file
 
-		var output, err = cmd.Output()
-		fmt.Println(string(output))
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		var err = cmd.Run()
 		if err != nil {
 			if exitError, ok := err.(*exec.ExitError); ok {
 				fmt.Printf("transpiler failed: %d\n", exitError.ExitCode())
 			} else {
-				fmt.Printf("ERROR: %v\n", err)
+				fmt.Printf("Error: %v\n", err)
 			}
 			os.Exit(1)
 		}

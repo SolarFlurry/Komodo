@@ -3,7 +3,7 @@
 
 string genFuncDeclaration(ASTNode* stmt) {
 	if (stmt->content->type != FunctionDeclaration) {
-		fatalError("not a function declaration");
+		fatalError("not a function declaration", stmt->content->line);
 	}
 	string func;
 	string funcName = stmt->firstChild->content->lexeme;
@@ -15,17 +15,11 @@ string genFuncDeclaration(ASTNode* stmt) {
 		funcContent = stmt->firstChild->sibling;
 	}
 
-	if (funcContent->content->type == ComplexExpression) {
-		if (funcContent->firstChild != nullptr) {
-			func = genStatementList(funcContent->firstChild);
-		}
-	} else {
-		auto [cmd, type] = genExpression(funcContent);
-		if (type != Integer) {
-			fatalError("Expected integer type");
-		}
-		func = cmd;
+	auto [cmd, type] = genExpression(funcContent);
+	if (type != Integer) {
+		fatalError("Expected integer type", funcContent->content->line);
 	}
+	func = cmd;
 
 	string filename = "functions/";
 	filename += funcName;
@@ -43,11 +37,11 @@ string genFuncDeclaration(ASTNode* stmt) {
 
 string genFunctionCall(ASTNode* stmt) {
 	if (stmt->content->type != FunctionCall) {
-		fatalError("not a function call");
+		fatalError("not a function call", stmt->content->line);
 	}
 	auto symtabId = symtabLookup(stmt->firstChild->content->lexeme);
 	if (symtabId == nullptr || symtabId->varType != Function) {
-		fatalError("identifier does not exist");
+		fatalError("identifier does not exist", stmt->content->line);
 	}
 	string instr;
 	if (stmt->firstChild->firstChild != nullptr) {

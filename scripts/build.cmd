@@ -28,7 +28,7 @@ IF %go_exists% NEQ 0 IF %cmake_exists% NEQ 0 (
 		exit 1
     )
 
-	go build -o bin/komodo src/cmd/main.go
+	go build -o bin/komodo.exe src/cmd/main.go
 	echo Built target komodo
 ) ELSE (
 	echo Build failed

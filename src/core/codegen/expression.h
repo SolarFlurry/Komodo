@@ -10,7 +10,7 @@ pair<string, TokenType> genExpressionNode(ASTNode* expr, char reg) {
 		auto [instr1, firstType] = genExpressionNode(expr->firstChild, '1');
 		auto [instr2, secondType] = genExpressionNode(expr->firstChild->sibling, '2');
 		if (firstType != secondType) {
-			fatalError("Operand types differ");
+			fatalError("Operand types differ", expr->content->line);
 		}
 		if (firstType == String) {
 			return {instr1 + instr2, String};
@@ -55,7 +55,7 @@ pair<string, TokenType> genFactor(ASTNode* factor, char reg) {
 	} else if (factor->content->type == Identifier) {
 		auto symtabId = symtabLookup(factor->content->lexeme);
 		if (symtabId == nullptr) {
-			fatalError("Variable is not defined");
+			fatalError("Variable is not defined", factor->content->line);
 		}
 		if (symtabId->varType == Global) {
 			string instr = checkExecute();
@@ -84,11 +84,13 @@ pair<string, TokenType> genFactor(ASTNode* factor, char reg) {
 			instr += '\n';
 			return {instr, symtabId->type};
 		} else {
-			fatalError("Variable is not defined");
+			fatalError("Variable is not defined", factor->content->line);
 			return {"", SyntaxError};
 		}
 	} else if (factor->content->type == FunctionCall) {
 		return {genFunctionCall(factor), Integer};
+	} else if (factor->content->type == ComplexExpression) {
+		return {genStatementList(factor->firstChild), Integer};
 	} else {
 		return {factor->content->lexeme, factor->content->type};
 	}

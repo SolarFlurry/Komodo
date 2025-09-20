@@ -26,8 +26,10 @@ vector<Token*> parseToks;
 
 void match (TokenType type) {
 	if (parserTok->type != type) {
-		string msg = "Unexpected token '";
+		string msg = "Unexpected '";
 		msg += parserTok->lexeme;
+		msg += "', expected '";
+		msg += typeToString(parserTok->type);
 		msg += "'";
 		error(msg, parserTok->line);
 	}
@@ -37,8 +39,10 @@ void match (TokenType type) {
 
 void match (TokenType type, string lexeme) {
 	if (parserTok->type != type && parserTok->lexeme != lexeme) {
-		string msg = "Unexpected token '";
+		string msg = "Unexpected '";
 		msg += parserTok->lexeme;
+		msg += "', expected '";
+		msg += typeToString(parserTok->type);
 		msg += "'";
 		error(msg, parserTok->line);
 	}
@@ -74,7 +78,7 @@ ASTNode* parseStatementList() {
 
 ASTNode* parseStatement() {
 	ASTNode* stmt = nullptr;
-	if (parserTok->type == At) {
+	if (parserTok->type == BinaryOperator && parserTok->lexeme == "/") {
 		stmt = parseCmdStmt();
 	} else if (parserTok->type == Keyword) {
 		if (parserTok->lexeme == "return") {
@@ -98,7 +102,7 @@ ASTNode* parseStatement() {
 }
 
 ASTNode* parseCmdStmt() {
-	match(At);
+	match(BinaryOperator, "/");
 	auto cmdNode = newNode(newParseToken(CommandStatement));
 	cmdNode->firstChild = parseExpression();
 	return cmdNode;
@@ -129,10 +133,19 @@ ASTNode* parseVarDeclaration() {
 	if (parserTok->type == Keyword && (parserTok->lexeme == "const" || parserTok->lexeme == "glob" || parserTok->lexeme == "score")) {
 		varDec->firstChild = newNode(parserTok);
 		match(Keyword);
+		
+		if (varExists(parserTok->lexeme)) {
+			string msg = "Variable '";
+			msg += parserTok->lexeme;
+			msg += "' already declared";
+			error(msg, parserTok->line);
+		}
+
 		varDec->firstChild->sibling = newNode(parserTok);
 		symtableEntry* symtabId = new symtableEntry(Uninitialised);
 		symtabId->genName = parserTok->lexeme;
 		symtabAdd(parserTok->lexeme, symtabId);
+
 		if (parseToks[parserIdx-1]->lexeme == "const") {
 			symtabId->varType = Constant;
 		} else if (parseToks[parserIdx-1]->lexeme == "glob") {
@@ -145,6 +158,7 @@ ASTNode* parseVarDeclaration() {
 			if (parserTok->lexeme == "int") {
 				symtabId->type = Integer;
 			}
+			match(Keyword);
 		} else {
 			symtabId->type = Integer;
 		}
@@ -186,7 +200,10 @@ ASTNode* parseFunctionDeclaration() {
 	funcDec->firstChild = newNode(parserTok);
 
 	if (varExists(parserTok->lexeme)) {
-		error("Variable already declared", parserTok->line);
+		string msg = "Variable '";
+		msg += parserTok->lexeme;
+		msg += "' already declared";
+		error(msg, parserTok->line);
 	}
 
 	symtableEntry* symtabId = new symtableEntry(Uninitialised);
@@ -247,9 +264,9 @@ ASTNode* parseFactor () {
 			factor = newNode(parserTok);
 			auto identifier = symtabLookup(parserTok->lexeme);
 			if (identifier == nullptr || identifier->varType == Uninitialised) {
-				string msg = "Variable '";
+				string msg = "Use of undeclared variable '";
 				msg += parserTok->lexeme;
-				msg += "' does not exist";
+				msg += "'";
 				error(msg, parserTok->line);
 			}
 			match(Identifier);
@@ -287,8 +304,12 @@ ASTNode* parseFactor () {
 			match(RightBrace);
 		} break;
 		default:
-			error("Expected expression", parserTok->line);
+			string msg = "Unexpected '";
+			msg += parserTok->lexeme;
+			msg += "'";
+			error(msg, parserTok->line);
 			factor = newNode(parserTok);
+			match(parserTok->type);
 	}
 	return factor;
 }

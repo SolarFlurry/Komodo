@@ -47,6 +47,12 @@ symtableEntry* symtabLookup(string id) {
 	return result;
 }
 
+void printSymtab() {
+	for (auto entry : symtable) {
+		cout << entry.first << ":\t" << entry.second->genName << "\n";
+	}
+}
+
 bool varExists (string id) {
 	return symtabLookup(id) != nullptr; 
 }

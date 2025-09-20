@@ -72,6 +72,7 @@ struct Token {
 	string lexeme;
 	TokenType type;
 	unsigned int line;
+	unsigned int lineIdx;
 };
 
 Token* newToken(string lexeme, TokenType type, unsigned int line) {
@@ -79,6 +80,15 @@ Token* newToken(string lexeme, TokenType type, unsigned int line) {
 	tok->lexeme = lexeme;
 	tok->type = type;
 	tok->line = line;
+	return tok;
+}
+
+Token* newToken(string lexeme, TokenType type, unsigned int line, unsigned int lineIdx) {
+	Token* tok = new Token;
+	tok->lexeme = lexeme;
+	tok->type = type;
+	tok->line = line;
+	tok->lineIdx = lineIdx;
 	return tok;
 }
 

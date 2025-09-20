@@ -33,12 +33,12 @@ string genStatement(ASTNode* stmt) {
 
 string genCmdStmt(ASTNode* stmt) {
 	if (stmt->content->type != CommandStatement) {
-		fatalError("not a command statement");
+		fatalError("not a command statement", stmt->content->line);
 		return "";
 	}
 	auto [cmd, type] = genExpression(stmt->firstChild);
 	if (type != String) {
-		fatalError("expected a string");
+		fatalError("expected a string", stmt->firstChild->content->line);
 		return "";
 	}
 	string instr = checkExecute();
@@ -47,7 +47,7 @@ string genCmdStmt(ASTNode* stmt) {
 
 string genVarDeclaration(ASTNode* stmt) {
 	if (stmt->content->type != VarDeclaration) {
-		fatalError("not a variable declaration");
+		fatalError("not a variable declaration", stmt->content->line);
 		return "";
 	}
 	if (stmt->firstChild->content->lexeme == "const" || stmt->firstChild->sibling->sibling == nullptr) {
@@ -56,7 +56,7 @@ string genVarDeclaration(ASTNode* stmt) {
 	string instr = checkExecute();
 	auto [cmd, type] = genExpression(stmt->firstChild->sibling->sibling);
 	if (type != Integer) {
-		fatalError("Expected integer");
+		fatalError("Expected integer", stmt->content->line);
 	}
 	instr += cmd;
 	instr += checkExecute();
@@ -76,7 +76,7 @@ string genVarDeclaration(ASTNode* stmt) {
 
 string genAssignStatement(ASTNode* stmt) {
 	if (stmt->content->type != AssignStatement) {
-		fatalError("not an assign statement");
+		fatalError("not an assign statement", stmt->content->line);
 		return "";
 	}
 	auto [instr, type] = genExpression(stmt->firstChild->sibling);
@@ -84,10 +84,10 @@ string genAssignStatement(ASTNode* stmt) {
 	instr += "scoreboard players operation ";
 	auto symtabId = symtabLookup(stmt->firstChild->content->lexeme);
 	if (type != symtabId->type) {
-		fatalError("mismatched types");
+		fatalError("mismatched types", stmt->content->line);
 	}
 	if (symtabId == nullptr) {
-		fatalError("variable does not exist");
+		fatalError("variable does not exist", stmt->firstChild->content->line);
 	}
 	if (symtabId->varType == Score) {
 		instr += "@s ";
@@ -96,7 +96,7 @@ string genAssignStatement(ASTNode* stmt) {
 		instr += symtabId->genName;
 		instr += " .global";
 	} else {
-		fatalError("cannot assign to variable");
+		fatalError("cannot assign to variable", stmt->content->line);
 		return "";
 	}
 	instr += " = R0 .komodo\n";

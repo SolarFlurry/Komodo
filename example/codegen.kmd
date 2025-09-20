@@ -1,7 +1,4 @@
-glob global = 0;
-
-func someFunc(param) {
-	global = global + param;
+{
+	glob hello = 0;
+	/"say hello"
 }
-
-someFunc(2, 3, 1);

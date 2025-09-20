@@ -6,9 +6,9 @@ glob condition = 1;
 
 func someFunc() {
 	as "@e" if "condition" {
-		@"say booga booga"
-	}
-	@"say " + "Hello, World!";
+		/"say booga booga"
+	};
+	/"say " + "Hello, World!";
 }
 
-someFunc();
+condition = someFunc();
