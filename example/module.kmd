@@ -1,0 +1,7 @@
+namespace module;
+
+glob big = 0;
+
+func hello(param) {
+	big = big + param
+}

@@ -25,6 +25,8 @@ string genStatement(ASTNode* stmt) {
 		return genFuncDeclaration(stmt);
 	} else if (stmt->content->type == AssignStatement) {
 		return genAssignStatement(stmt);
+	} else if (stmt->content->type == ImportStatement) {
+		return genImportStmt(stmt);
 	} else {
 		auto [instr, type] = genExpression(stmt);
 		return instr;
@@ -42,7 +44,20 @@ string genCmdStmt(ASTNode* stmt) {
 		return "";
 	}
 	string instr = checkExecute();
-	return instr + cmd + '\n';
+	instr += cmd;
+	return instr + '\n';
+}
+
+string genImportStmt(ASTNode* stmt) {
+	if (stmt->content->type != ImportStatement) {
+		fatalError("not a command statement", stmt->content->line);
+		return "";
+	}
+	string instr = checkExecute();
+	instr += "function ";
+	instr += stmt->firstChild->content->lexeme;
+	instr += "/main\n";
+	return instr;
 }
 
 string genVarDeclaration(ASTNode* stmt) {
@@ -61,12 +76,14 @@ string genVarDeclaration(ASTNode* stmt) {
 	instr += cmd;
 	instr += checkExecute();
 	auto symtabId = symtabLookup(stmt->firstChild->sibling->content->lexeme);
-	if (stmt->firstChild->content->lexeme == "score") {
+	if (symtabId->varType == Score) {
 		instr += "scoreboard players operation @e ";
+		if (nameSpaces.back() != "") {instr += nameSpaces.back(); instr += ":";}
 		instr += stmt->firstChild->sibling->content->lexeme;
 		instr += " = R0 .komodo";
 	} else {
 		instr += "scoreboard players operation ";
+		if (nameSpaces.back() != "") {instr += nameSpaces.back(); instr += ":";}
 		instr += symtabId->genName;
 		instr += " .global = R0 .komodo";
 	}
@@ -91,8 +108,10 @@ string genAssignStatement(ASTNode* stmt) {
 	}
 	if (symtabId->varType == Score) {
 		instr += "@s ";
+		if (nameSpaces.back() != "") {instr += nameSpaces.back(); instr += ":";}
 		instr += symtabId->genName;
 	} else if (symtabId->varType == Global) {
+		if (nameSpaces.back() != "") {instr += nameSpaces.back(); instr += ":";}
 		instr += symtabId->genName;
 		instr += " .global";
 	} else {

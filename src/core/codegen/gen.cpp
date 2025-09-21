@@ -1,6 +1,8 @@
 #ifndef GEN_CPP
 #define GEN_CPP
 
+filesystem::path namespacePath;
+
 #include "../token.h"
 #include "../ast.h"
 #include "../error.h"
@@ -13,13 +15,9 @@
 #include "statement.h"
 #include "expression.h"
 
-const char* KOMODO_ENV;
-
-string codeGen(ASTNode* ast) {
-	KOMODO_ENV = getenv("KOMODO_ENV");
-	if (KOMODO_ENV == nullptr) {
-		cout << "\x1b[31mFATAL ERROR: Missing environment variable KOMODO_ENV\x1b[0m\n";
-		exit(0);
+string codeGen(ASTNode* ast, string nameSpace) {
+	if (ast->firstChild == nullptr) {
+		return "";
 	}
 	ifstream inputFile(filesystem::path(KOMODO_ENV) / "main.mcfunction");
 	if (!inputFile.is_open()) {
@@ -32,15 +30,22 @@ string codeGen(ASTNode* ast) {
 		main += line + "\n";
 	}
 
+	namespacePath = filesystem::path("functions");
+
+	if (nameSpace != "") {
+		namespacePath /= nameSpace;
+		filesystem::create_directory(namespacePath);
+	};
+
 	inputFile.close();
 
 	filesystem::create_directory("functions");
 
 	main += genStatementList(ast->firstChild);
 
-	ofstream outputFile("functions/main.mcfunction");
+	ofstream outputFile(namespacePath / "main.mcfunction");
 	if (!outputFile.is_open()) {
-		cout << "\x1b[31mFATAL ERROR: Could not write to main.mcfunction\x1b[0m\n";
+		cout << "\x1b[31mFatal Error: Could not write to main.mcfunction\x1b[0m\n";
 		exit(0);
 	}
 	outputFile << main;

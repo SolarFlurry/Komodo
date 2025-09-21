@@ -18,6 +18,7 @@ enum TokenType {
 	Semicolon,
 	At,
 	Comma,
+	Colon,
 
 	Eof,
 
@@ -31,6 +32,7 @@ enum TokenType {
 	ExecuteStatement,
 	VarDeclaration,
 	AssignStatement,
+	ImportStatement,
 	FunctionCall,
 	ParameterList,
 	FunctionDeclaration,
@@ -53,6 +55,7 @@ string typeToString(TokenType type) {
 		case Semicolon: return "Semicolon";
 		case At: return "At";
 		case Comma: return "Comma";
+		case Colon: return "Colon";
 		case SyntaxError: return "SyntaxError";
 		case Program: return "Program";
 		case CommandStatement: return "CommandStatement";

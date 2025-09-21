@@ -43,7 +43,7 @@ pair<string, TokenType> genExpressionNode(ASTNode* expr, char reg) {
 	}
 }
 
-pair<string, TokenType> genFactor(ASTNode* factor, char reg) {
+pair<string, TokenType> genFactor(ASTNode* factor, char reg, string ns) {
 	if (factor->content->type == Integer) {
 		string instr = checkExecute();
 		instr += "scoreboard players set R";
@@ -53,15 +53,21 @@ pair<string, TokenType> genFactor(ASTNode* factor, char reg) {
 		instr += '\n';
 		return {instr, factor->content->type};
 	} else if (factor->content->type == Identifier) {
-		auto symtabId = symtabLookup(factor->content->lexeme);
+		auto symtabId = symtabLookup(factor->content->lexeme, ns);
 		if (symtabId == nullptr) {
-			fatalError("Variable is not defined", factor->content->line);
+			string msg = "Variable '";
+			msg += ns;
+			msg += ':';
+			msg += factor->content->lexeme;
+			msg += "' is not defined";
+			fatalError(msg, factor->content->line);
 		}
 		if (symtabId->varType == Global) {
 			string instr = checkExecute();
 			instr += "scoreboard players operation R";
 			instr += reg;
 			instr += " .komodo = ";
+			if (ns != "") {instr += ns; instr += ":";}
 			instr += symtabId->genName;
 			instr += " .global";
 			instr += '\n';
@@ -71,6 +77,7 @@ pair<string, TokenType> genFactor(ASTNode* factor, char reg) {
 			instr += "scoreboard players operation R";
 			instr += reg;
 			instr += " .komodo = @s";
+			if (ns != "") {instr += ns; instr += ":";}
 			instr += symtabId->genName;
 			instr += '\n';
 			return {instr, symtabId->type};
@@ -88,9 +95,17 @@ pair<string, TokenType> genFactor(ASTNode* factor, char reg) {
 			return {"", SyntaxError};
 		}
 	} else if (factor->content->type == FunctionCall) {
-		return {genFunctionCall(factor), Integer};
+		return {genFunctionCall(factor, ns), Integer};
 	} else if (factor->content->type == ComplexExpression) {
 		return {genStatementList(factor->firstChild), Integer};
+	} else if (factor->content->type == Colon) {
+		if (!namespaceExists(factor->firstChild->content->lexeme)) {
+			string msg = "Namespace '";
+			msg += factor->firstChild->content->lexeme;
+			msg += "' does not exist";
+			fatalError(msg, factor->content->line);
+		}
+		return genFactor(factor->firstChild->sibling, reg, factor->firstChild->content->lexeme);
 	} else {
 		return {factor->content->lexeme, factor->content->type};
 	}

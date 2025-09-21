@@ -21,13 +21,18 @@ string genFuncDeclaration(ASTNode* stmt) {
 	}
 	func = cmd;
 
-	string filename = "functions/";
-	filename += funcName;
+	string filename = funcName;
 	filename += ".mcfunction";
+	auto fullpath = filesystem::path("functions");
+	if (nameSpaces.back() != "") fullpath /= nameSpaces.back();
+	fullpath /= filename;
 
-	ofstream outputFile(filename);
+	ofstream outputFile(fullpath);
 	if (!outputFile.is_open()) {
-		cout << "\x1b[31mFATAL ERROR: Could not write to file\x1b[0m\n";
+		string msg = "\x1b[31mFatal Error: Could not write to file '";
+		msg += fullpath;
+		msg += "'\x1b[0m\n";
+		cout << msg;
 		exit(0);
 	}
 	outputFile << func;
@@ -35,13 +40,18 @@ string genFuncDeclaration(ASTNode* stmt) {
 	return "";
 }
 
-string genFunctionCall(ASTNode* stmt) {
+string genFunctionCall(ASTNode* stmt, string ns) {
 	if (stmt->content->type != FunctionCall) {
 		fatalError("not a function call", stmt->content->line);
 	}
-	auto symtabId = symtabLookup(stmt->firstChild->content->lexeme);
+	auto symtabId = symtabLookup(stmt->firstChild->content->lexeme, ns);
 	if (symtabId == nullptr || symtabId->varType != Function) {
-		fatalError("identifier does not exist", stmt->content->line);
+		string msg = "Function '";
+		msg += ns;
+		msg += ':';
+		msg += stmt->firstChild->content->lexeme;
+		msg += "' does not exist";
+		fatalError(msg, stmt->content->line);
 	}
 	string instr;
 	if (stmt->firstChild->firstChild != nullptr) {
@@ -49,6 +59,10 @@ string genFunctionCall(ASTNode* stmt) {
 	}
 	instr += checkExecute();
 	instr += "function ";
+	if (ns != "") {
+		instr += ns;
+		instr += '/';
+	}
 	instr += stmt->firstChild->content->lexeme;
 	instr += '\n';
 	return instr;

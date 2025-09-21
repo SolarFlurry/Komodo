@@ -47,6 +47,9 @@ enum LexerState {
 	// Comma
 	CommaStart,
 	CommaEnd,
+	// Colon
+	ColonStart,
+	ColonEnd,
 	// ERROR
 	Unknown
 };
@@ -65,6 +68,7 @@ void fail (LexerState &state) {
 		case RBraceStart: state = SemicolonStart; return;
 		case SemicolonStart: state = AtStart; return;
 		case AtStart: state = CommaStart; return;
+		case CommaStart: state = ColonStart; return;
 		default: state = Unknown;
 	}
 }
@@ -112,7 +116,8 @@ vector<Token*> tokenise(string program) {
 				Token* tok = newToken(acc, TokenType::Identifier, line);
 				if (acc == "glob" || acc == "score" || acc == "const" || acc == "func" ||
 					acc == "import" || acc == "if" || acc == "as" || acc == "at" ||
-					acc == "in" || acc == "return" || acc == "tick" || acc == "int") {
+					acc == "in" || acc == "return" || acc == "tick" || acc == "int" ||
+					acc == "namespace") {
 					tok->type = TokenType::Keyword;
 				}
 				tokList.push_back(tok);
@@ -185,7 +190,7 @@ vector<Token*> tokenise(string program) {
 			}
 			case OpStart: { // + - *
 				switch (program[i]) {
-					case '+': case '-': case '*': case '=': case ':':
+					case '+': case '-': case '*': case '=':
 						acc += program[i];
 						i++;
 						state = OpEnd;
@@ -346,6 +351,23 @@ vector<Token*> tokenise(string program) {
 			}
 			case CommaEnd: {
 				Token* tok = newToken(acc, Comma, line);
+				tokList.push_back(tok);
+				acc = "";
+				state = Start;
+				break;
+			}
+			case ColonStart: {
+				if (program[i] == ':') {
+					acc += program[i];
+					i++;
+					state = ColonEnd;
+				} else {
+					fail(state);
+				}
+				break;
+			}
+			case ColonEnd: {
+				Token* tok = newToken(acc, Colon, line);
 				tokList.push_back(tok);
 				acc = "";
 				state = Start;

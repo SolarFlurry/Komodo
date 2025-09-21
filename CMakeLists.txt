@@ -7,3 +7,4 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 add_executable(kmd_compiler ./src/core/main.cpp)
+# add_executable(komodo_tests ./src/core/tests/tests.cpp)

@@ -6,6 +6,7 @@
 #include "../error.h"
 #include "../symtable.h"
 
+ASTNode* parseImportStmt();
 ASTNode* parseStatementList();
 ASTNode* parseStatement();
 ASTNode* parseCmdStmt();
@@ -15,10 +16,11 @@ ASTNode* parseVarDeclaration();
 ASTNode* parseAssignStmt();
 ASTNode* parseParameterList(int index);
 ASTNode* parseFunctionDeclaration();
+ASTNode* parseNamespaceStmt();
 ASTNode* parseExpressionList();
 ASTNode* parseExpression();
 ASTNode* parseTerm();
-ASTNode* parseFactor();
+ASTNode* parseFactor(string ns = nameSpaces.back());
 
 int parserIdx = 0;
 Token* parserTok;
@@ -58,9 +60,73 @@ ASTNode* parse (vector<Token*> tokList) {
 	parserIdx = 0;
 	parserTok = parseToks[parserIdx];
 
+	newNamespace("");
+
 	root->firstChild = parseStatementList();
 
 	return root;
+}
+
+ASTNode* parseImportStmt() {
+	match(Keyword, "import");
+	if (parserTok->type != String) {
+		fatalError("Expected a string", parserTok->line);
+	}
+	ifstream inputFile;
+	if (!filesystem::exists(parserTok->lexeme)) {
+		inputFile.open(filesystem::path(KOMODO_ENV) / parserTok->lexeme);
+	} else {
+		inputFile.open(parserTok->lexeme);
+	}
+
+	string instr = "function ";
+	instr += parserTok->lexeme;
+	instr += "/main";
+	if (!inputFile.is_open()) {
+		string msg = "Module '";
+		msg += parserTok->lexeme;
+		msg += "' does not exist";
+		fatalError(msg, parserTok->line);
+	}
+	match(String);
+
+	string line;
+	vector<string> lines;
+	string modProgram;
+
+	int beforeParserIdx = parserIdx;
+	auto beforeTokList = parseToks;
+	auto beforeParserTok = parserTok;
+
+	while (getline(inputFile, line)) {
+		modProgram += line + '\n';
+		lines.push_back(line);
+	}
+	inputFile.close();
+	int namespacesNum = nameSpaces.size();
+	vector<Token*> modTokList = tokenise(modProgram);
+	if (errors.size() == 0) {
+		ASTNode* modAst = parse(modTokList);
+		if (errors.size() == 0) {
+			if (nameSpaces.size() <= namespacesNum) {
+				string msg = "Module does not contain a namespace";
+				fatalError(msg, parserTok->line);
+			}
+			auto result = codeGen(modAst, nameSpaces.back());
+		}
+	}
+	parserIdx = beforeParserIdx;
+	parseToks = beforeTokList;
+	parserTok = beforeParserTok;
+
+	auto stmt = newNode(newParseToken(ImportStatement));
+	stmt->firstChild = newNode(newToken(nameSpaces.back(), String, parserTok->line));
+	if (nameSpaces.size() > namespacesNum) {
+		for (int i = nameSpaces.size(); i > namespacesNum; i--) {
+			nameSpaces.pop_back();
+		}
+	}
+	return stmt;
 }
 
 // possibly returns nullptr
@@ -69,6 +135,10 @@ ASTNode* parseStatementList() {
 		return nullptr;
 	}
 	auto stmt = parseStatement();
+	if (stmt == nullptr) {
+		stmt = parseStatementList();
+		return stmt;
+	}
 	auto next = parseStatementList();
 	if (next != nullptr) {
 		stmt->sibling = next;
@@ -76,6 +146,7 @@ ASTNode* parseStatementList() {
 	return stmt;
 }
 
+// possible returns nullptr
 ASTNode* parseStatement() {
 	ASTNode* stmt = nullptr;
 	if (parserTok->type == BinaryOperator && parserTok->lexeme == "/") {
@@ -87,6 +158,10 @@ ASTNode* parseStatement() {
 			stmt = parseFunctionDeclaration();
 		} else if (parserTok->lexeme == "const" || parserTok->lexeme == "glob" || parserTok->lexeme == "score") {
 			stmt = parseVarDeclaration();
+		} else if (parserTok->lexeme == "namespace") {
+			stmt = parseNamespaceStmt();
+		} else if (parserTok->lexeme == "import") {
+			stmt = parseImportStmt();
 		} else {
 			stmt = parseExecuteStmt();
 		}
@@ -224,6 +299,14 @@ ASTNode* parseFunctionDeclaration() {
 	return funcDec;
 }
 
+// returns nullptr
+ASTNode* parseNamespaceStmt() {
+	match(Keyword, "namespace");
+	newNamespace(parserTok->lexeme);
+	match(Identifier);
+	return nullptr;
+}
+
 ASTNode* parseExpressionList() {
 	auto exprList = parseExpression();
 	if (parserTok->type == Comma) {
@@ -257,14 +340,16 @@ ASTNode* parseTerm() {
 	return term;
 }
 
-ASTNode* parseFactor () {
+ASTNode* parseFactor (string ns) {
 	ASTNode* factor = nullptr;
 	switch (parserTok->type) {
 		case Identifier: {
 			factor = newNode(parserTok);
-			auto identifier = symtabLookup(parserTok->lexeme);
-			if (identifier == nullptr || identifier->varType == Uninitialised) {
+			auto identifier = symtabLookup(parserTok->lexeme, ns);
+			if ((identifier == nullptr || identifier->varType == Uninitialised) && parseToks[parserIdx + 1]->type != Colon) {
 				string msg = "Use of undeclared variable '";
+				msg += ns;
+				msg += ':';
 				msg += parserTok->lexeme;
 				msg += "'";
 				error(msg, parserTok->line);
@@ -279,6 +364,12 @@ ASTNode* parseFactor () {
 				}
 				match(RightParen);
 				return funcNode;
+			} else if (parserTok->type == Colon) {
+				auto colonNode = newNode(parserTok);
+				match(Colon);
+				colonNode->firstChild = factor;
+				colonNode->firstChild->sibling = parseFactor(factor->content->lexeme);
+				return colonNode;
 			}
 		} break;
 		case Integer: {
