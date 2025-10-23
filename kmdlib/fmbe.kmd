@@ -22,6 +22,6 @@ func setup () {
 }
 func new() {
 	/"summon fox ~~~";
-	/"tag @e[type=fox,c=1,r=0.1] add fmbe";
+	/"tag @e[type=fox,c=1] add fmbe";
 	setup();
 }

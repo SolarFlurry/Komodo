@@ -1,18 +1,4 @@
-#ifndef AST_H
-#define AST_H
-
-#include "token.h"
-
-struct ASTNode {
-	Token* content;
-	ASTNode* sibling;
-	ASTNode* firstChild;
-	ASTNode () {
-		content = nullptr;
-		sibling = nullptr;
-		firstChild = nullptr;
-	}
-};
+#include "help.h"
 
 std::string operator* (const string &s, unsigned int n) {
 	string result = "";
@@ -50,5 +36,3 @@ void printAST(ASTNode* ast, int indent) {
 		printAST(ast->sibling, indent);
 	}
 }
-
-#endif // AST_H

@@ -6,5 +6,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin")
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
-add_executable(kmd_compiler ./src/core/main.cpp)
+set(SOURCES
+	src/core/main.cpp
+	src/core/compiler/lexer.cpp
+	src/core/helper/token.cpp
+	src/core/helper/ast.cpp
+	src/core/helper/error.cpp)
+
+add_executable(kmd_compiler ${SOURCES})
 # add_executable(komodo_tests ./src/core/tests/tests.cpp)

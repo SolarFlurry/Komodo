@@ -1,66 +1,67 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "../token.h"
-#include "../ast.h"
-#include "../error.h"
-#include "../symtable.h"
+#include "compiler.h"
 
-ASTNode* parseImportStmt();
-ASTNode* parseStatementList();
-ASTNode* parseStatement();
-ASTNode* parseCmdStmt();
-ASTNode* parseReturnStmt();
-ASTNode* parseExecuteStmt();
-ASTNode* parseVarDeclaration();
-ASTNode* parseAssignStmt();
-ASTNode* parseParameterList(int index);
-ASTNode* parseFunctionDeclaration();
-ASTNode* parseNamespaceStmt();
-ASTNode* parseExpressionList();
-ASTNode* parseExpression();
-ASTNode* parseTerm();
-ASTNode* parseFactor(string ns = nameSpaces.back());
+Lexer* parseLx;
 
-int parserIdx = 0;
-Token* parserTok;
-vector<Token*> parseToks;
+Token* parseToks[MAX_LOOKAHEAD + 1];
+int currentLookahead;
+
+Token* lookahead(int t) {
+	if (t > MAX_LOOKAHEAD) {
+		return nullptr;
+	}
+	if (t > currentLookahead) {
+		for (int i = currentLookahead; i < t; i++) {
+			parseToks[i+1] = nextToken(parseLx);
+		}
+	}
+	return parseToks[t];
+}
 
 void match (TokenType type) {
-	if (parserTok->type != type) {
+	if (parseToks[0]->type != type) {
 		string msg = "Unexpected '";
-		msg += parserTok->lexeme;
+		msg += parseToks[0]->lexeme;
 		msg += "', expected '";
-		msg += typeToString(parserTok->type);
+		msg += typeToString(parseToks[0]->type);
 		msg += "'";
-		error(msg, parserTok->line);
+		error(msg, parseToks[0]->line);
 	}
-	parserIdx++;
-	parserTok = parseToks[parserIdx];
+	// shift parseToks
+	for (int i = 0; i < currentLookahead + 1; i++) {
+		parseToks[i] = parseToks[i + 1];
+	}
+	currentLookahead--;
+	if (currentLookahead < 0) currentLookahead = 0;
 }
 
 void match (TokenType type, string lexeme) {
-	if (parserTok->type != type && parserTok->lexeme != lexeme) {
+	if (parseToks[0]->type != type && parseToks[0]->lexeme != lexeme) {
 		string msg = "Unexpected '";
-		msg += parserTok->lexeme;
+		msg += parseToks[0]->lexeme;
 		msg += "', expected '";
-		msg += typeToString(parserTok->type);
+		msg += typeToString(parseToks[0]->type);
 		msg += "'";
-		error(msg, parserTok->line);
+		error(msg, parseToks[0]->line);
 	}
-	parserIdx++;
-	parserTok = parseToks[parserIdx];
+	// shift parseToks
+	for (int i = 0; i < currentLookahead + 1; i++) {
+		parseToks[i] = parseToks[i + 1];
+	}
+	currentLookahead--;
+	if (currentLookahead < 0) currentLookahead = 0;
 }
 
-ASTNode* parse (vector<Token*> tokList) {
+ASTNode* parse (Lexer* lx) {
 	//newScope();
-	parseToks = tokList;
+	parseLx = lx;
+
 	ASTNode* root = new ASTNode();
 	root->content = newToken("", Program, 0);
-	parserIdx = 0;
-	parserTok = parseToks[parserIdx];
 
-	newNamespace("");
+	currentLookahead = 0;
 
 	root->firstChild = parseStatementList();
 
@@ -69,24 +70,24 @@ ASTNode* parse (vector<Token*> tokList) {
 
 ASTNode* parseImportStmt() {
 	match(Keyword, "import");
-	if (parserTok->type != String) {
-		fatalError("Expected a string", parserTok->line);
+	if (parseToks[0]->type != String) {
+		fatalError("Expected a string", parseToks[0]->line);
 	}
 	ifstream inputFile;
-	if (!filesystem::exists(parserTok->lexeme)) {
-		inputFile.open(filesystem::path(KOMODO_ENV) / parserTok->lexeme);
+	if (!filesystem::exists(parseToks[0]->lexeme)) {
+		inputFile.open(filesystem::path(KOMODO_ENV) / parseToks[0]->lexeme);
 	} else {
-		inputFile.open(parserTok->lexeme);
+		inputFile.open(parseToks[0]->lexeme);
 	}
 
 	string instr = "function ";
-	instr += parserTok->lexeme;
+	instr += parseToks[0]->lexeme;
 	instr += "/main";
 	if (!inputFile.is_open()) {
 		string msg = "Module '";
-		msg += parserTok->lexeme;
+		msg += parseToks[0]->lexeme;
 		msg += "' does not exist";
-		fatalError(msg, parserTok->line);
+		fatalError(msg, parseToks[0]->line);
 	}
 	match(String);
 
@@ -96,7 +97,7 @@ ASTNode* parseImportStmt() {
 
 	int beforeParserIdx = parserIdx;
 	auto beforeTokList = parseToks;
-	auto beforeParserTok = parserTok;
+	auto beforeparseToks[0] = parseToks[0];
 
 	while (getline(inputFile, line)) {
 		modProgram += line + '\n';
@@ -110,17 +111,17 @@ ASTNode* parseImportStmt() {
 		if (errors.size() == 0) {
 			if (nameSpaces.size() <= namespacesNum) {
 				string msg = "Module does not contain a namespace";
-				fatalError(msg, parserTok->line);
+				fatalError(msg, parseToks[0]->line);
 			}
 			auto result = codeGen(modAst, nameSpaces.back());
 		}
 	}
 	parserIdx = beforeParserIdx;
 	parseToks = beforeTokList;
-	parserTok = beforeParserTok;
+	parseToks[0] = beforeparseToks[0];
 
 	auto stmt = newNode(newParseToken(ImportStatement));
-	stmt->firstChild = newNode(newToken(nameSpaces.back(), String, parserTok->line));
+	stmt->firstChild = newNode(newToken(nameSpaces.back(), String, parseToks[0]->line));
 	if (nameSpaces.size() > namespacesNum) {
 		for (int i = nameSpaces.size(); i > namespacesNum; i--) {
 			nameSpaces.pop_back();
@@ -131,7 +132,7 @@ ASTNode* parseImportStmt() {
 
 // possibly returns nullptr
 ASTNode* parseStatementList() {
-	if (parserTok->type == Eof || parserTok->type == RightBrace) {
+	if (parseToks[0]->type == Eof || parseToks[0]->type == RightBrace) {
 		return nullptr;
 	}
 	auto stmt = parseStatement();
@@ -149,28 +150,28 @@ ASTNode* parseStatementList() {
 // possible returns nullptr
 ASTNode* parseStatement() {
 	ASTNode* stmt = nullptr;
-	if (parserTok->type == BinaryOperator && parserTok->lexeme == "/") {
+	if (parseToks[0]->type == BinaryOperator && parseToks[0]->lexeme == "/") {
 		stmt = parseCmdStmt();
-	} else if (parserTok->type == Keyword) {
-		if (parserTok->lexeme == "return") {
+	} else if (parseToks[0]->type == Keyword) {
+		if (parseToks[0]->lexeme == "return") {
 			stmt = parseReturnStmt();
-		} else if (parserTok->lexeme == "func") {
+		} else if (parseToks[0]->lexeme == "func") {
 			stmt = parseFunctionDeclaration();
-		} else if (parserTok->lexeme == "const" || parserTok->lexeme == "glob" || parserTok->lexeme == "score") {
+		} else if (parseToks[0]->lexeme == "const" || parseToks[0]->lexeme == "glob" || parseToks[0]->lexeme == "score") {
 			stmt = parseVarDeclaration();
-		} else if (parserTok->lexeme == "namespace") {
+		} else if (parseToks[0]->lexeme == "namespace") {
 			stmt = parseNamespaceStmt();
-		} else if (parserTok->lexeme == "import") {
+		} else if (parseToks[0]->lexeme == "import") {
 			stmt = parseImportStmt();
 		} else {
 			stmt = parseExecuteStmt();
 		}
-	} else if (parserTok->type == Identifier && parseToks[parserIdx+1]->type == BinaryOperator && parseToks[parserIdx+1]->lexeme == "=") {
+	} else if (parseToks[0]->type == Identifier && lookahead(1)->type == BinaryOperator && lookahead(1)->lexeme == "=") {
 		stmt = parseAssignStmt();
 	} else {
 		stmt = parseExpression();
 	}
-	if (parserTok->type == Semicolon) {
+	if (parseToks[0]->type == Semicolon) {
 		match(Semicolon);
 	}
 	return stmt;
@@ -192,8 +193,8 @@ ASTNode* parseReturnStmt() {
 
 ASTNode* parseExecuteStmt() {
 	auto executeNode = newNode(newParseToken(ExecuteStatement));
-	if (parserTok->type == Keyword && (parserTok->lexeme == "if" || parserTok->lexeme == "as" || parserTok->lexeme == "at" || parserTok->lexeme == "in")) {
-		executeNode->firstChild = newNode(parserTok);
+	if (parseToks[0]->type == Keyword && (parseToks[0]->lexeme == "if" || parseToks[0]->lexeme == "as" || parseToks[0]->lexeme == "at" || parseToks[0]->lexeme == "in")) {
+		executeNode->firstChild = newNode(parseToks[0]);
 		match(Keyword);
 		executeNode->firstChild->sibling = parseExpression();
 		executeNode->firstChild->sibling->sibling = parseStatement();
@@ -205,21 +206,21 @@ ASTNode* parseExecuteStmt() {
 
 ASTNode* parseVarDeclaration() {
 	auto varDec = newNode(newParseToken(VarDeclaration));
-	if (parserTok->type == Keyword && (parserTok->lexeme == "const" || parserTok->lexeme == "glob" || parserTok->lexeme == "score")) {
-		varDec->firstChild = newNode(parserTok);
+	if (parseToks[0]->type == Keyword && (parseToks[0]->lexeme == "const" || parseToks[0]->lexeme == "glob" || parseToks[0]->lexeme == "score")) {
+		varDec->firstChild = newNode(parseToks[0]);
 		match(Keyword);
 		
-		if (varExists(parserTok->lexeme)) {
+		if (varExists(parseToks[0]->lexeme)) {
 			string msg = "Variable '";
-			msg += parserTok->lexeme;
+			msg += parseToks[0]->lexeme;
 			msg += "' already declared";
-			error(msg, parserTok->line);
+			error(msg, parseToks[0]->line);
 		}
 
-		varDec->firstChild->sibling = newNode(parserTok);
+		varDec->firstChild->sibling = newNode(parseToks[0]);
 		symtableEntry* symtabId = new symtableEntry(Uninitialised);
-		symtabId->genName = parserTok->lexeme;
-		symtabAdd(parserTok->lexeme, symtabId);
+		symtabId->genName = parseToks[0]->lexeme;
+		symtabAdd(parseToks[0]->lexeme, symtabId);
 
 		if (parseToks[parserIdx-1]->lexeme == "const") {
 			symtabId->varType = Constant;
@@ -229,15 +230,15 @@ ASTNode* parseVarDeclaration() {
 			symtabId->varType = Score;
 		}
 		match(Identifier);
-		if (isTypeKeyword(parserTok)) {
-			if (parserTok->lexeme == "int") {
+		if (isTypeKeyword(parseToks[0])) {
+			if (parseToks[0]->lexeme == "int") {
 				symtabId->type = Integer;
 			}
 			match(Keyword);
 		} else {
 			symtabId->type = Integer;
 		}
-		if (parserTok->type == BinaryOperator && parserTok->lexeme == "=") {
+		if (parseToks[0]->type == BinaryOperator && parseToks[0]->lexeme == "=") {
 			match(BinaryOperator, "=");
 			varDec->firstChild->sibling->sibling = parseExpression();
 		}
@@ -249,7 +250,7 @@ ASTNode* parseVarDeclaration() {
 
 ASTNode* parseAssignStmt() {
 	auto assignNode = newNode(newParseToken(AssignStatement));
-	assignNode->firstChild = newNode(parserTok);
+	assignNode->firstChild = newNode(parseToks[0]);
 	match(Identifier);
 	match(BinaryOperator, "=");
 	assignNode->firstChild->sibling = parseExpression();
@@ -257,12 +258,12 @@ ASTNode* parseAssignStmt() {
 }
 
 ASTNode* parseParameterList(int index) {
-	ASTNode* paramList = newNode(parserTok);
+	ASTNode* paramList = newNode(parseToks[0]);
 	auto symtabId = new symtableEntry(Argument);
 	symtabId->genName = "arg" + to_string(index);
-	symtabAdd(parserTok->lexeme, symtabId);
+	symtabAdd(parseToks[0]->lexeme, symtabId);
 	match(Identifier);
-	if (parserTok->type == Comma) {
+	if (parseToks[0]->type == Comma) {
 		match(Comma);
 		paramList->sibling = parseParameterList(index + 1);
 	}
@@ -272,22 +273,22 @@ ASTNode* parseParameterList(int index) {
 ASTNode* parseFunctionDeclaration() {
 	match(Keyword, "func");
 	auto funcDec = newNode(newParseToken(FunctionDeclaration));
-	funcDec->firstChild = newNode(parserTok);
+	funcDec->firstChild = newNode(parseToks[0]);
 
-	if (varExists(parserTok->lexeme)) {
+	if (varExists(parseToks[0]->lexeme)) {
 		string msg = "Variable '";
-		msg += parserTok->lexeme;
+		msg += parseToks[0]->lexeme;
 		msg += "' already declared";
-		error(msg, parserTok->line);
+		error(msg, parseToks[0]->line);
 	}
 
 	symtableEntry* symtabId = new symtableEntry(Uninitialised);
 	symtabId->varType = Function;
-	symtabAdd(parserTok->lexeme, symtabId);
+	symtabAdd(parseToks[0]->lexeme, symtabId);
 
 	match(Identifier);
 	match(LeftParen);
-	if (parserTok->type != RightParen) {
+	if (parseToks[0]->type != RightParen) {
 		funcDec->firstChild->sibling = newNode(newParseToken(ParameterList));
 		funcDec->firstChild->sibling->firstChild = parseParameterList(0);
 		match(RightParen);
@@ -302,14 +303,14 @@ ASTNode* parseFunctionDeclaration() {
 // returns nullptr
 ASTNode* parseNamespaceStmt() {
 	match(Keyword, "namespace");
-	newNamespace(parserTok->lexeme);
+	newNamespace(parseToks[0]->lexeme);
 	match(Identifier);
 	return nullptr;
 }
 
 ASTNode* parseExpressionList() {
 	auto exprList = parseExpression();
-	if (parserTok->type == Comma) {
+	if (parseToks[0]->type == Comma) {
 		match(Comma);
 		exprList->sibling = parseExpressionList();
 	}
@@ -318,8 +319,8 @@ ASTNode* parseExpressionList() {
 
 ASTNode* parseExpression() {
 	ASTNode* expr = parseTerm();
-	if (parserTok->type == BinaryOperator && (parserTok->lexeme == "+" || parserTok->lexeme == "-")) {
-		auto op = newNode(parserTok);
+	if (parseToks[0]->type == BinaryOperator && (parseToks[0]->lexeme == "+" || parseToks[0]->lexeme == "-")) {
+		auto op = newNode(parseToks[0]);
 		op->firstChild = expr;
 		match(BinaryOperator);
 		expr->sibling = parseExpression();
@@ -330,8 +331,8 @@ ASTNode* parseExpression() {
 
 ASTNode* parseTerm() {
 	ASTNode* term = parseFactor();
-	if (parserTok->type == BinaryOperator && (parserTok->lexeme == "*" || parserTok->lexeme == "/")) {
-		auto op = newNode(parserTok);
+	if (parseToks[0]->type == BinaryOperator && (parseToks[0]->lexeme == "*" || parseToks[0]->lexeme == "/")) {
+		auto op = newNode(parseToks[0]);
 		op->firstChild = term;
 		match(BinaryOperator);
 		term->sibling = parseTerm();
@@ -342,30 +343,30 @@ ASTNode* parseTerm() {
 
 ASTNode* parseFactor (string ns) {
 	ASTNode* factor = nullptr;
-	switch (parserTok->type) {
+	switch (parseToks[0]->type) {
 		case Identifier: {
-			factor = newNode(parserTok);
-			auto identifier = symtabLookup(parserTok->lexeme, ns);
-			if ((identifier == nullptr || identifier->varType == Uninitialised) && parseToks[parserIdx + 1]->type != Colon) {
+			factor = newNode(parseToks[0]);
+			auto identifier = symtabLookup(parseToks[0]->lexeme, ns);
+			if ((identifier == nullptr || identifier->varType == Uninitialised) && lookahead(1)->type != Colon) {
 				string msg = "Use of undeclared variable '";
 				msg += ns;
 				msg += ':';
-				msg += parserTok->lexeme;
+				msg += parseToks[0]->lexeme;
 				msg += "'";
-				error(msg, parserTok->line);
+				error(msg, parseToks[0]->line);
 			}
 			match(Identifier);
-			if (parserTok->type == LeftParen) {
+			if (parseToks[0]->type == LeftParen) {
 				auto funcNode = newNode(newParseToken(FunctionCall));
 				funcNode->firstChild = factor;
 				match(LeftParen);
-				if (parserTok->type != RightParen) {
+				if (parseToks[0]->type != RightParen) {
 					factor->firstChild = parseExpressionList();
 				}
 				match(RightParen);
 				return funcNode;
-			} else if (parserTok->type == Colon) {
-				auto colonNode = newNode(parserTok);
+			} else if (parseToks[0]->type == Colon) {
+				auto colonNode = newNode(parseToks[0]);
 				match(Colon);
 				colonNode->firstChild = factor;
 				colonNode->firstChild->sibling = parseFactor(factor->content->lexeme);
@@ -373,11 +374,11 @@ ASTNode* parseFactor (string ns) {
 			}
 		} break;
 		case Integer: {
-			factor = newNode(parserTok);
+			factor = newNode(parseToks[0]);
 			match(Integer);
 		} break;
 		case String: {
-			factor = newNode(parserTok);
+			factor = newNode(parseToks[0]);
 			match(String);
 		} break;
 		case LeftParen: {
@@ -396,11 +397,11 @@ ASTNode* parseFactor (string ns) {
 		} break;
 		default:
 			string msg = "Unexpected '";
-			msg += parserTok->lexeme;
+			msg += parseToks[0]->lexeme;
 			msg += "'";
-			error(msg, parserTok->line);
-			factor = newNode(parserTok);
-			match(parserTok->type);
+			error(msg, parseToks[0]->line);
+			factor = newNode(parseToks[0]);
+			match(parseToks[0]->type);
 	}
 	return factor;
 }

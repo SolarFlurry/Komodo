@@ -1,6 +1,1 @@
-import "fmbe.kmd";
-
-fmbe:new();
-
-/"replaceitem entity @e[tag=fmbe,c=1,r=0.1] slot.weapon.mainhand 0 stone";
-as "@e[tag=fmbe,c=1,r=0.1]" at "@s" { /"tp @s ~~1 ~";}
+import "fmbe.kmd"

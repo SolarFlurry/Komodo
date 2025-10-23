@@ -15,18 +15,15 @@ vector<string> nameSpaces;
 
 const char* KOMODO_ENV;
 
-#include "error.h"
-#include "symtable.h"
-#include "codegen/gen.cpp"
-#include "compiler/lexer.h"
-#include "compiler/parser.h"
+#include "compiler/compiler.h"
+#include "helper/help.h"
 
 int main () {
-	KOMODO_ENV = getenv("KOMODO_ENV");
+	/*KOMODO_ENV = getenv("KOMODO_ENV");
 	if (KOMODO_ENV == nullptr) {
 		cout << "\x1b[31mFATAL ERROR: Missing environment variable KOMODO_ENV\x1b[0m\n";
 		exit(0);
-	}
+	}*/
 	string line;
 	
 	while (getline(cin, line)) {
@@ -34,12 +31,17 @@ int main () {
 		lines.push_back(line);
 	}
 
-	vector<Token*> tokList = tokenise(program);
+	Lexer lexer = Lexer(program);
+	Token* tok = nullptr;
+	do {
+		tok = nextToken(&lexer);
+		printToken(tok);
+	} while (tok->type != TOK_EOF);
 
-	if (errors.size() == 0) {
-		/*for (auto i : tokList) {
+	/*if (errors.size() == 0) {
+		for (auto i : tokList) {
 			printToken(i);
-		}*/
+		}
 		cout << "[ 33%] \x1b[32mTokenisation complete\x1b[0m\n";
 		ASTNode* ast = parse(tokList);
 		if (errors.size() == 0) {
@@ -56,5 +58,5 @@ int main () {
 	}
 	if (errors.size() > 0) {
 		cout << "\x1b[31mCompilation failed with " << errors.size() << " errors\x1b[0m\n";
-	}
+	}*/
 }

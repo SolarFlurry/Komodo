@@ -1,61 +1,22 @@
-#ifndef TOKEN_H
-#define TOKEN_H
-
-enum TokenType {
-	// Basic
-	Integer,
-	String,
-	Identifier,
-	Keyword,
-
-	// Symbols
-	BinaryOperator,
-	UnaryOperator,
-	LeftParen,
-	RightParen,
-	LeftBrace,
-	RightBrace,
-	Semicolon,
-	At,
-	Comma,
-	Colon,
-
-	Eof,
-
-	// Errors
-	SyntaxError,
-
-	// Parser Nodes
-	Program,
-	CommandStatement,
-	ReturnStatement,
-	ExecuteStatement,
-	VarDeclaration,
-	AssignStatement,
-	ImportStatement,
-	FunctionCall,
-	ParameterList,
-	FunctionDeclaration,
-	ComplexExpression,
-	Variable
-};
+#include "help.h"
 
 string typeToString(TokenType type) {
 	switch (type) {
-		case Integer: return "Integer";
-		case String: return "String";
-		case Identifier: return "Identifier";
-		case Keyword: return "Keyword";
-		case BinaryOperator: return "BinaryOperator";
-		case UnaryOperator: return "UnaryOperator";
-		case LeftParen: return "LeftParen";
-		case RightParen: return "RightParen";
-		case LeftBrace: return "LeftBrace";
-		case RightBrace: return "RightBrace";
-		case Semicolon: return "Semicolon";
-		case At: return "At";
-		case Comma: return "Comma";
-		case Colon: return "Colon";
+		case TOK_INT: return "INTEGER";
+		case TOK_STRING: return "STRING";
+		case TOK_ID: return "IDENTIFIER";
+		case TOK_KEYWORD: return "KEYWORD";
+		case TOK_PLUS: return "PLUS";
+		case TOK_MINUS: return "MINUS";
+		case TOK_L_PAREN: return "L_PAREN";
+		case TOK_R_PAREN: return "RightParen";
+		case TOK_L_BRACE: return "LeftBrace";
+		case TOK_R_BRACE: return "RightBrace";
+		case TOK_SEMICOLON: return "Semicolon";
+		case TOK_AT: return "At";
+		case TOK_COMMA: return "Comma";
+		case TOK_COLON: return "Colon";
+		case TOK_EOF: return "EOF";
 		case SyntaxError: return "SyntaxError";
 		case Program: return "Program";
 		case CommandStatement: return "CommandStatement";
@@ -70,13 +31,6 @@ string typeToString(TokenType type) {
 		default: return "Unknown";
 	}
 }
-
-struct Token {
-	string lexeme;
-	TokenType type;
-	unsigned int line;
-	unsigned int lineIdx;
-};
 
 Token* newToken(string lexeme, TokenType type, unsigned int line) {
 	Token* tok = new Token;
@@ -105,12 +59,14 @@ void deleteToken(Token* tok) {
 	delete tok;
 }
 
-void printToken (struct Token* tok) {
+void printToken (Token* tok) {
+	if (tok == nullptr) {
+		cout << "<\"NULL\">";
+		return;
+	}
     cout << "<\x1b[0;33m\"" << tok->lexeme << "\"\x1b[0m, \x1b[0;32m" << typeToString(tok->type) << "\x1b[0m, Line \x1b[0;36m" << tok->line << "\x1b[0m>\n";
 }
 
 bool isTypeKeyword (Token* tok) {
-	return tok->type == Keyword && tok->lexeme == "int";
+	return tok->type == TOK_KEYWORD && tok->lexeme == "int";
 }
-
-#endif //TOKEN_H

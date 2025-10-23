@@ -52,6 +52,7 @@
 		"variant": "cpp",
 		"vector": "cpp",
 		"algorithm": "cpp",
-		"fstream": "cpp"
+		"fstream": "cpp",
+		"type_traits": "cpp"
 	}
 }

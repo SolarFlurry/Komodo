@@ -1,5 +1,8 @@
 # Komodo
 
+Reasons I made Komodo:
+- 
+
 ## Installing
 WIP
 
@@ -30,6 +33,14 @@ After building, you must set the `KOMODO_ENV` environment variable to the path o
 ## TODO:
 - Constant variables
 - Tick functions
-- Float and boolean type support
-- Comparison and logic operatos
+- Float and boolean runtime type support
+- Comparison and logic operators
+- Arithmetic constant optimisations
+- Selector type support
 - more but i cant think right now
+
+## some stuff
+```diff
++ good 
+- annoying to type `/"..."` for every command raw
+```
