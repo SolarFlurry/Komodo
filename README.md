@@ -12,7 +12,7 @@ WIP
 ### Dependencies:
 - Golang
 - CMake
-- C++ Compiler (C++23 or later)
+- C++ Compiler (C++14 or later)
 
 Command Line - Windows
 ```sh

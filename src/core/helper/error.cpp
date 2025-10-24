@@ -32,3 +32,7 @@ void printErrors() {
 		printError(error);
 	}
 }
+
+bool hasAnyErrors() {
+	return errors.size() > 0;
+}

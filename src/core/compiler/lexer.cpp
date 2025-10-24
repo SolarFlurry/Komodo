@@ -1,6 +1,3 @@
-#ifndef LEXER_H
-#define LEXER_H
-
 #include "compiler.h"
 #include "../helper/help.h"
 #include "../helper/error.h"
@@ -66,6 +63,14 @@ Token* nextToken(Lexer* lx) {
 			advance(lx);
 		}
 		return newToken(acc, lookupKeyword(acc), lx);
+	} else if (isdigit(lx->current())) {
+		acc += lx->current();
+		advance(lx);
+		while (!isEnd(lx) && isdigit(lx->current())) {
+			acc += lx->current();
+			advance(lx);
+		}
+		return newToken(acc, TOK_INT, lx);
 	}
 	acc += lx->current();
 	advance(lx);
@@ -93,5 +98,3 @@ Token* nextToken(Lexer* lx) {
 		}
 	}
 };
-
-#endif // LEXER_H

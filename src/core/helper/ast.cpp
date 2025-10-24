@@ -1,6 +1,6 @@
 #include "help.h"
 
-std::string operator* (const string &s, unsigned int n) {
+std::string repeatStr (const string &s, unsigned int n) {
 	string result = "";
 	for (int i = 0; i < n; i++) {
 		result += s;
@@ -27,8 +27,10 @@ void deleteAST(ASTNode* ast) {
 }
 
 void printAST(ASTNode* ast, int indent) {
-	cout << (string("  ") * indent);
-	printToken(ast->content);
+	if (indent > 0) {
+		cout << repeatStr("  ", indent - 1) << "↳ ";
+	}
+	cout << "\x1b[36m" << typeToString(ast->content->type) << "\x1b[0m: \"" << ast->content->lexeme << "\"\n";
 	if (ast->firstChild != NULL) {
 		printAST(ast->firstChild, indent + 1);
 	}

@@ -33,12 +33,15 @@ int main () {
 	}
 
 	Lexer lexer = Lexer(program);
-	Token* tok = nullptr;
-	do {
-		tok = nextToken(&lexer);
-		printToken(tok);
-	} while (tok->type != TOK_EOF);
-	printErrors();
+	ASTNode* ast = parse(&lexer);
+	cout << "finished parsing\n";
+	if (hasAnyErrors()) {
+		cout << "Errors:\n";
+		printErrors();
+	} else {
+		cout << "Abstract Syntax Tree:\n";
+		printAST(ast, 0);
+	}
 
 	/*if (errors.size() == 0) {
 		for (auto i : tokList) {

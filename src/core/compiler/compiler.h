@@ -3,16 +3,18 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <cctype>
+#include <tuple>
 
 using namespace std;
 
 enum TokenType {
-	// Basic
 	TOK_INT, TOK_STRING, TOK_ID,
 	
 	TOK_KEYWORD_SCORE, TOK_KEYWORD_GLOB, TOK_KEYWORD_CONST,
 	TOK_KEYWORD_IF,
 
+	TOK_BINARY_OP,
 	TOK_PLUS, TOK_MINUS, TOK_ASTERISK, TOK_SLASH, TOK_PERCENT,
 	TOK_EQ,
 	TOK_EQ_EQ, TOK_RARROW_EQ, TOK_LARROW_EQ, TOK_BANG_EQ,
@@ -72,8 +74,8 @@ struct Lexer {
 	}
 };
 
-TokenType lookupSymbol(string);
-TokenType lookupKeyword(string);
+TokenType lookupSymbol(string val);
+TokenType lookupKeyword(string val);
 void advance(Lexer*);
 void skipWhitespace(Lexer*);
 bool isEnd(Lexer*);
@@ -93,11 +95,17 @@ struct ASTNode {
 
 const int MAX_LOOKAHEAD = 1;
 
-Token* lookahead(int);
-void match(TokenType);
-void match(TokenType, string);
+Token* lookahead(int t);
+void match(TokenType type);
+void match(TokenType type, string lexeme);
 
-ASTNode* parseImportStmt();
+ASTNode* parse(Lexer* lx);
+
+ASTNode* parseExpression(int minbp = 0);
+ASTNode* parseAtom();
+tuple<int, int> infixBindingPower(TokenType op);
+
+/*ASTNode* parseImportStmt();
 ASTNode* parseStatementList();
 ASTNode* parseStatement();
 ASTNode* parseCmdStmt();
@@ -111,4 +119,4 @@ ASTNode* parseNamespaceStmt();
 ASTNode* parseExpressionList();
 ASTNode* parseExpression();
 ASTNode* parseTerm();
-ASTNode* parseFactor(string);
+ASTNode* parseFactor(string);*/

@@ -9,8 +9,11 @@ string typeToString(TokenType type) {
 		case TOK_KEYWORD_CONST: return "KEYWORD_CONST";
 		case TOK_KEYWORD_GLOB: return "KEYWORD_GLOB";
 		case TOK_KEYWORD_IF: return "KEYWORD_IF";
+		case TOK_BINARY_OP: return "BINARY_OP";
 		case TOK_PLUS: return "PLUS";
 		case TOK_MINUS: return "MINUS";
+		case TOK_ASTERISK: return "ASTERISK";
+		case TOK_SLASH: return "SLASH";
 		case TOK_LPAREN: return "L_PAREN";
 		case TOK_RPAREN: return "R_PAREN";
 		case TOK_LBRACE: return "LeftBrace";
