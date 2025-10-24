@@ -30,6 +30,9 @@ cmake -version
 bash scripts/build.sh
 ```
 
+> [!WARNING]
+> The `main` branch does not contain a working version currently. If you want the latest working version, clone the branch `v0.1` instead of `main`
+
 After building, you must set the `KOMODO_ENV` environment variable to the path of `kmdlib` inside the project directory.
 
 ## TODO:
