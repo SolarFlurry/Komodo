@@ -15,7 +15,7 @@ vector<string> nameSpaces;
 
 const char* KOMODO_ENV;
 
-#include "compiler/compiler.h"
+#include "parser/parser.h"
 #include "helper/help.h"
 #include "helper/error.h"
 

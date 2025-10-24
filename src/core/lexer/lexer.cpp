@@ -1,4 +1,4 @@
-#include "compiler.h"
+#include "lexer.h"
 #include "../helper/help.h"
 #include "../helper/error.h"
 

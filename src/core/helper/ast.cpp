@@ -30,7 +30,7 @@ void printAST(ASTNode* ast, int indent) {
 	if (indent > 0) {
 		cout << repeatStr("  ", indent - 1) << "↳ ";
 	}
-	cout << "\x1b[36m" << typeToString(ast->content->type) << "\x1b[0m: \"" << ast->content->lexeme << "\"\n";
+	cout << "\x1b[36m" << typeToString(ast->content->type) << "\x1b[0m: \x1b[33m\"" << ast->content->lexeme << "\"\x1b[0m\n";
 	if (ast->firstChild != NULL) {
 		printAST(ast->firstChild, indent + 1);
 	}

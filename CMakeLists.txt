@@ -8,8 +8,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 set(SOURCES
 	src/core/main.cpp
-	src/core/compiler/lexer.cpp
-	src/core/compiler/parser.cpp
+	src/core/lexer/lexer.cpp
+	src/core/parser/parser.cpp
+	src/core/parser/ast_utils.cpp
 	src/core/helper/token.cpp
 	src/core/helper/ast.cpp
 	src/core/helper/error.cpp)

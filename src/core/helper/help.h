@@ -2,7 +2,8 @@
 
 #include <iostream>
 #include <string>
-#include "../compiler/compiler.h"
+#include "../lexer/lexer.h"
+#include "../parser/parser.h"
 
 using namespace std;
 

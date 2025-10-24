@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../compiler/compiler.h"
+#include "../lexer/lexer.h"
 #include <iostream>
 
 using namespace std;
