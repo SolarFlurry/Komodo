@@ -1,7 +1,9 @@
 # Komodo
 
 Reasons I made Komodo:
-- 
+- learning compilers
+- learning Golang
+- to make command stuff
 
 ## Installing
 WIP

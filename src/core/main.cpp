@@ -17,6 +17,7 @@ const char* KOMODO_ENV;
 
 #include "compiler/compiler.h"
 #include "helper/help.h"
+#include "helper/error.h"
 
 int main () {
 	/*KOMODO_ENV = getenv("KOMODO_ENV");
@@ -37,6 +38,7 @@ int main () {
 		tok = nextToken(&lexer);
 		printToken(tok);
 	} while (tok->type != TOK_EOF);
+	printErrors();
 
 	/*if (errors.size() == 0) {
 		for (auto i : tokList) {

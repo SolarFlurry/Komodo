@@ -2,20 +2,23 @@
 
 string typeToString(TokenType type) {
 	switch (type) {
-		case TOK_INT: return "INTEGER";
+		case TOK_INT: return "INT";
 		case TOK_STRING: return "STRING";
-		case TOK_ID: return "IDENTIFIER";
-		case TOK_KEYWORD: return "KEYWORD";
+		case TOK_ID: return "ID";
+		case TOK_KEYWORD_SCORE: return "KEYWORD_SCORE";
+		case TOK_KEYWORD_CONST: return "KEYWORD_CONST";
+		case TOK_KEYWORD_GLOB: return "KEYWORD_GLOB";
+		case TOK_KEYWORD_IF: return "KEYWORD_IF";
 		case TOK_PLUS: return "PLUS";
 		case TOK_MINUS: return "MINUS";
-		case TOK_L_PAREN: return "L_PAREN";
-		case TOK_R_PAREN: return "RightParen";
-		case TOK_L_BRACE: return "LeftBrace";
-		case TOK_R_BRACE: return "RightBrace";
+		case TOK_LPAREN: return "L_PAREN";
+		case TOK_RPAREN: return "R_PAREN";
+		case TOK_LBRACE: return "LeftBrace";
+		case TOK_RBRACE: return "RightBrace";
 		case TOK_SEMICOLON: return "Semicolon";
-		case TOK_AT: return "At";
-		case TOK_COMMA: return "Comma";
-		case TOK_COLON: return "Colon";
+		case TOK_AT: return "AT";
+		case TOK_COMMA: return "COMMA";
+		case TOK_COLON: return "COLON";
 		case TOK_EOF: return "EOF";
 		case SyntaxError: return "SyntaxError";
 		case Program: return "Program";
@@ -28,24 +31,16 @@ string typeToString(TokenType type) {
 		case FunctionDeclaration: return "FunctionDeclaration";
 		case ComplexExpression: return "ComplexExpression";
 		case Variable: return "Variable";
-		default: return "Unknown";
+		default: return "UNKNOWN";
 	}
 }
 
-Token* newToken(string lexeme, TokenType type, unsigned int line) {
+Token* newToken(string lexeme, TokenType type, Lexer* lx) {
 	Token* tok = new Token;
 	tok->lexeme = lexeme;
 	tok->type = type;
-	tok->line = line;
-	return tok;
-}
-
-Token* newToken(string lexeme, TokenType type, unsigned int line, unsigned int lineIdx) {
-	Token* tok = new Token;
-	tok->lexeme = lexeme;
-	tok->type = type;
-	tok->line = line;
-	tok->lineIdx = lineIdx;
+	tok->line = lx->line;
+	tok->col = lx->col;
 	return tok;
 }
 
@@ -64,9 +59,9 @@ void printToken (Token* tok) {
 		cout << "<\"NULL\">";
 		return;
 	}
-    cout << "<\x1b[0;33m\"" << tok->lexeme << "\"\x1b[0m, \x1b[0;32m" << typeToString(tok->type) << "\x1b[0m, Line \x1b[0;36m" << tok->line << "\x1b[0m>\n";
-}
-
-bool isTypeKeyword (Token* tok) {
-	return tok->type == TOK_KEYWORD && tok->lexeme == "int";
+    cout << "<\x1b[0;33m\"" << tok->lexeme
+		<< "\"\x1b[0m, \x1b[0;32m" << typeToString(tok->type)
+		<< "\x1b[0m, \x1b[0;36m" << tok->line
+		<< "\x1b[0m, \x1b[36m" << tok->col
+	<< "\x1b[0m>\n";
 }

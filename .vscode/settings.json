@@ -53,6 +53,7 @@
 		"vector": "cpp",
 		"algorithm": "cpp",
 		"fstream": "cpp",
-		"type_traits": "cpp"
+		"type_traits": "cpp",
+		"format": "cpp"
 	}
 }

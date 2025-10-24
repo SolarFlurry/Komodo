@@ -2,20 +2,27 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
+
 using namespace std;
 
 enum TokenType {
 	// Basic
 	TOK_INT, TOK_STRING, TOK_ID,
-	TOK_KEYWORD,
+	
+	TOK_KEYWORD_SCORE, TOK_KEYWORD_GLOB, TOK_KEYWORD_CONST,
+	TOK_KEYWORD_IF,
 
-	TOK_PLUS, TOK_MINUS,
-	TOK_L_PAREN, TOK_R_PAREN,
-	TOK_L_BRACE, TOK_R_BRACE,
-	TOK_SEMICOLON,
+	TOK_PLUS, TOK_MINUS, TOK_ASTERISK, TOK_SLASH, TOK_PERCENT,
+	TOK_EQ,
+	TOK_EQ_EQ, TOK_RARROW_EQ, TOK_LARROW_EQ, TOK_BANG_EQ,
+	TOK_LPAREN, TOK_RPAREN,
+	TOK_LBRACE, TOK_RBRACE,
+	TOK_LBRACK, TOK_RBRACK,
+	TOK_LARROW, TOK_RARROW,
+	TOK_SEMICOLON, TOK_COLON,
 	TOK_AT,
 	TOK_COMMA,
-	TOK_COLON,
 
 	TOK_EOF,
 	TOK_UNKNOWN,
@@ -40,7 +47,7 @@ struct Token {
 	string lexeme;
 	TokenType type;
 	unsigned int line;
-	unsigned int lineIdx;
+	unsigned int col;
 };
 
 // lexer
@@ -65,7 +72,8 @@ struct Lexer {
 	}
 };
 
-TokenType lookupSymbol(string, TokenType);
+TokenType lookupSymbol(string);
+TokenType lookupKeyword(string);
 void advance(Lexer*);
 void skipWhitespace(Lexer*);
 bool isEnd(Lexer*);

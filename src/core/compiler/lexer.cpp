@@ -3,28 +3,44 @@
 
 #include "compiler.h"
 #include "../helper/help.h"
-#include "../error.h"
+#include "../helper/error.h"
 
-const string keywords[] = {
-	"score", "glob", "const", "if"
+const SymbolEntry keywords[] = {
+	{"score", TOK_KEYWORD_SCORE}, {"glob", TOK_KEYWORD_GLOB}, {"const", TOK_KEYWORD_CONST},
+	{"if", TOK_KEYWORD_IF},
 };
 
 const SymbolEntry symbols[] = {
-	{"+", TOK_PLUS}, {"-", TOK_MINUS},
-	{"(", TOK_L_PAREN}, {")", TOK_R_PAREN},
-	{"{", TOK_L_BRACE}, {"}", TOK_R_BRACE},
+	{"+", TOK_PLUS}, {"-", TOK_MINUS}, {"*", TOK_ASTERISK}, {"/", TOK_SLASH}, {"%", TOK_PERCENT},
+	{"=", TOK_EQ},
+	{"==", TOK_EQ_EQ}, {">=", TOK_RARROW_EQ}, {"<=", TOK_LARROW_EQ},
+	{"(", TOK_LPAREN}, {")", TOK_RPAREN},
+	{"{", TOK_LBRACE}, {"}", TOK_RBRACE},
+	{"[", TOK_LBRACK}, {"]", TOK_RBRACK},
+	{"<", TOK_LARROW}, {">", TOK_RARROW},
+	{";", TOK_SEMICOLON}, {":", TOK_COLON},
+	{"@", TOK_AT}, {",", TOK_COMMA},
 };
 
-TokenType lookupSymbol(string val, TokenType fallback) {
+TokenType lookupSymbol(string val) {
 	for (const auto entry : symbols) {
 		if (entry.val == val) {
 			return entry.type;
 		}
 	}
-	return fallback;
+	return TOK_UNKNOWN;
 }
 
-void advance(Lexer* lx) {lx->idx++;}
+TokenType lookupKeyword(string val) {
+	for (const auto entry : keywords) {
+		if (entry.val == val) {
+			return entry.type;
+		}
+	}
+	return TOK_ID;
+}
+
+void advance(Lexer* lx) {lx->idx++;lx->col++;}
 bool isEnd(Lexer* lx) {return lx->idx >= lx->src.length();} 
 void skipWhitespace(Lexer* lx) {
 	while (isspace(lx->current()) && !isEnd(lx)) {
@@ -39,7 +55,7 @@ void skipWhitespace(Lexer* lx) {
 Token* nextToken(Lexer* lx) {
 	skipWhitespace(lx);
 	if (isEnd(lx)) {
-		return newToken("", TOK_EOF, lx->line);
+		return newToken("", TOK_EOF, lx);
 	}
 	string acc = "";
 	if (isalpha(lx->current()) || lx->current() == '_') {
@@ -49,24 +65,31 @@ Token* nextToken(Lexer* lx) {
 			acc += lx->current();
 			advance(lx);
 		}
-		return newToken(acc, TOK_ID, lx->line, lx->col);
+		return newToken(acc, lookupKeyword(acc), lx);
 	}
 	acc += lx->current();
 	advance(lx);
-	TokenType type = lookupSymbol(acc, TOK_UNKNOWN);
+	TokenType type = lookupSymbol(acc);
 	if (type != TOK_UNKNOWN) {
-		return newToken(acc, type, lx->line);
+		return newToken(acc, type, lx);
 	} else if (isEnd(lx)) {
-		error("Unexpected character", lx->line);
-		return nullptr;
+		stringstream ss;
+		ss << "Unexpected character '" << acc[0] << "'";
+		error(ss.str(), lx->line, lx->col);
+		return newToken(acc, TOK_UNKNOWN, lx);
 	} else {
 		acc += lx->current();
-		type = lookupSymbol(acc, TOK_UNKNOWN);
+		type = lookupSymbol(acc);
 		if (type == TOK_UNKNOWN) {
-			error("Unexpected character", lx->line);
-			return nullptr;
+			stringstream ss;
+			ss << "Unexpected character '" << acc[0] << "'";
+			error(ss.str(), lx->line, lx->col);
+			// remove whitespace
+			acc.erase(remove_if(acc.begin(), acc.end(), ::isspace), acc.end());
+			
+			return newToken(acc, TOK_UNKNOWN, lx);
 		} else {
-			return newToken(acc, type, lx->line);
+			return newToken(acc, type, lx);
 		}
 	}
 };

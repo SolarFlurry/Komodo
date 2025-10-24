@@ -7,8 +7,7 @@
 using namespace std;
 
 string typeToString(TokenType);
-Token* newToken(string lexeme, TokenType type, unsigned int);
-Token* newToken(string lexeme, TokenType type, unsigned int, unsigned int);
+Token* newToken(string lexeme, TokenType type, Lexer* lx);
 void deleteToken(Token*);
 
 void printToken(Token*);
