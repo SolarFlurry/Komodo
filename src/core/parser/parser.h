@@ -2,7 +2,17 @@
 
 #include "../lexer/lexer.h"
 
+typedef tuple<int, int> BindingPower;
+
+enum NodeType {
+	AST_PROGRAM,
+	AST_EXPR_LITERAL,
+	AST_EXPR_BINARY,
+	AST_EXPR_UNARY,
+};
+
 struct ASTNode {
+	NodeType type;
 	Token* content;
 	ASTNode* sibling;
 	ASTNode* firstChild;
@@ -23,4 +33,5 @@ ASTNode* parse(Lexer* lx);
 
 ASTNode* parseExpression(int minbp = 0);
 ASTNode* parseAtom();
-tuple<int, int> infixBindingPower(TokenType op);
+BindingPower infixBindingPower(TokenType op);
+BindingPower prefixBindingPower(TokenType op);

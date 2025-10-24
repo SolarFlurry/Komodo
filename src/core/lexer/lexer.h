@@ -14,7 +14,6 @@ enum TokenType {
 	TOK_KEYWORD_SCORE, TOK_KEYWORD_GLOB, TOK_KEYWORD_CONST,
 	TOK_KEYWORD_IF,
 
-	TOK_BINARY_OP,
 	TOK_PLUS, TOK_MINUS, TOK_ASTERISK, TOK_SLASH, TOK_PERCENT,
 	TOK_EQ,
 	TOK_EQ_EQ, TOK_RARROW_EQ, TOK_LARROW_EQ, TOK_BANG_EQ,
@@ -30,19 +29,6 @@ enum TokenType {
 	TOK_UNKNOWN,
 
 	SyntaxError,
-
-	Program,
-	CommandStatement,
-	ReturnStatement,
-	ExecuteStatement,
-	VarDeclaration,
-	AssignStatement,
-	ImportStatement,
-	FunctionCall,
-	ParameterList,
-	FunctionDeclaration,
-	ComplexExpression,
-	Variable
 };
 
 struct Token {

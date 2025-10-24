@@ -9,7 +9,6 @@ string typeToString(TokenType type) {
 		case TOK_KEYWORD_CONST: return "KEYWORD_CONST";
 		case TOK_KEYWORD_GLOB: return "KEYWORD_GLOB";
 		case TOK_KEYWORD_IF: return "KEYWORD_IF";
-		case TOK_BINARY_OP: return "BINARY_OP";
 		case TOK_PLUS: return "PLUS";
 		case TOK_MINUS: return "MINUS";
 		case TOK_ASTERISK: return "ASTERISK";
@@ -24,16 +23,6 @@ string typeToString(TokenType type) {
 		case TOK_COLON: return "COLON";
 		case TOK_EOF: return "EOF";
 		case SyntaxError: return "SyntaxError";
-		case Program: return "Program";
-		case CommandStatement: return "CommandStatement";
-		case ReturnStatement: return "ReturnStatement";
-		case ExecuteStatement: return "ExecuteStatement";
-		case VarDeclaration: return "VarDeclaration";
-		case AssignStatement: return "AssignStatement";
-		case FunctionCall: return "FunctionCall";
-		case FunctionDeclaration: return "FunctionDeclaration";
-		case ComplexExpression: return "ComplexExpression";
-		case Variable: return "Variable";
 		default: return "UNKNOWN";
 	}
 }
