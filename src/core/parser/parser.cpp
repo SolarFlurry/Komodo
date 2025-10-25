@@ -21,9 +21,10 @@ Token* lookahead(int t) {
 
 void match (TokenType type) {
 	if (parseToks[0]->type != type) {
-		stringstream ss;
-		ss << "Unexpected '" << (parseToks[0]->type == TOK_EOF ? "EOF" : parseToks[0]->lexeme) << "', expected '" << typeToString(type) << "'";
-		error(ss.str(), parseToks[0]->line, parseToks[0]->col);
+		string s = std::format("Unexpected '{}'", (parseToks[0]->type == TOK_EOF ? "EOF" : parseToks[0]->lexeme));
+		if (type != TOK_UNKNOWN)
+			s += std::format(", expected {}", typeToString(type));
+		error(s, parseToks[0]->line, parseToks[0]->col);
 	}
 	// shift parseToks
 	for (int i = 0; i < currentLookahead + 1; i++) {
@@ -36,14 +37,12 @@ void match (TokenType type) {
 	}
 }
 
-void match (TokenType type, string lexeme) {
+/*void match (TokenType type, string lexeme) {
 	if (parseToks[0]->type != type && parseToks[0]->lexeme != lexeme) {
-		string msg = "Unexpected '";
-		msg += parseToks[0]->lexeme;
-		msg += "', expected '";
-		msg += typeToString(parseToks[0]->type);
-		msg += "'";
-		error(msg, parseToks[0]->line, parseToks[0]->col);
+		string s = std::format("Unexpected '{}'", (parseToks[0]->type == TOK_EOF ? "EOF" : parseToks[0]->lexeme));
+		if (type != TOK_UNKNOWN)
+			s += std::format(", expected {}", typeToString(type));
+		error(s, parseToks[0]->line, parseToks[0]->col);
 	}
 	// shift parseToks
 	for (int i = 0; i < currentLookahead + 1; i++) {
@@ -51,7 +50,7 @@ void match (TokenType type, string lexeme) {
 	}
 	currentLookahead--;
 	if (currentLookahead < 0) currentLookahead = 0;
-}
+}*/
 
 ASTNode* parse (Lexer* lx) {
 	//newScope();
@@ -113,8 +112,20 @@ ASTNode* parseExpression(int minbp) {
 
 ASTNode* parseAtom() {
 	ASTNode* atom = newNode(parseToks[0]);
-	atom->type = AST_EXPR_LITERAL;
-	match(TOK_INT);
+	if (parseToks[0]->type == TOK_INT) {
+		match(TOK_INT);
+		atom->type = AST_EXPR_LITERAL;
+		return atom;
+	} else if (parseToks[0]->type == TOK_STRING) {
+		match(TOK_STRING);
+		atom->type = AST_EXPR_LITERAL;
+		return atom;
+	} else if (parseToks[0]->type == TOK_ID) {
+		match(TOK_ID);
+		atom->type = AST_EXPR_IDENTIFIER;
+		return atom;
+	}
+	match(TOK_UNKNOWN);
 	return atom;
 }
 

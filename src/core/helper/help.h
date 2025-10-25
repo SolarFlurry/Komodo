@@ -5,7 +5,7 @@
 #include "../lexer/lexer.h"
 #include "../parser/parser.h"
 
-using namespace std;
+using std::string;
 
 string typeToString(TokenType);
 Token* newToken(string lexeme, TokenType type, Lexer* lx);

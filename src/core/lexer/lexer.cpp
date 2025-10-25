@@ -40,12 +40,21 @@ TokenType lookupKeyword(string val) {
 void advance(Lexer* lx) {lx->idx++;lx->col++;}
 bool isEnd(Lexer* lx) {return lx->idx >= lx->src.length();} 
 void skipWhitespace(Lexer* lx) {
-	while (isspace(lx->current()) && !isEnd(lx)) {
-		if (lx->current() == '\n') {
+	while (!isEnd(lx)) {
+		char c = lx->current();
+		if (c == '\n') {
 			lx->line++;
 			lx->col = 0;
 		}
-		advance(lx);
+		if (isspace(c)) {
+			advance(lx);
+		} else if (c == '#') {
+			while (!isEnd(lx) && lx->current() != '\n') {
+				advance(lx);
+			}
+		} else {
+			break;
+		}
 	}
 }
 
@@ -71,6 +80,18 @@ Token* nextToken(Lexer* lx) {
 			advance(lx);
 		}
 		return newToken(acc, TOK_INT, lx);
+	} else if (lx->current() == '"') {
+		advance(lx);
+		while (!isEnd(lx) && lx->current() != '"') {
+			acc += lx->current();
+			advance(lx);
+		}
+		if (isEnd(lx)) {
+			error("Unterminated string", lx->line, lx->col);
+		} else {
+			advance(lx);
+			return newToken(acc, TOK_STRING, lx);
+		}
 	}
 	acc += lx->current();
 	advance(lx);
@@ -78,17 +99,13 @@ Token* nextToken(Lexer* lx) {
 	if (type != TOK_UNKNOWN) {
 		return newToken(acc, type, lx);
 	} else if (isEnd(lx)) {
-		stringstream ss;
-		ss << "Unexpected character '" << acc[0] << "'";
-		error(ss.str(), lx->line, lx->col);
+		error(std::format("Unexpected character '{}'", acc[0]), lx->line, lx->col);
 		return newToken(acc, TOK_UNKNOWN, lx);
 	} else {
 		acc += lx->current();
 		type = lookupSymbol(acc);
 		if (type == TOK_UNKNOWN) {
-			stringstream ss;
-			ss << "Unexpected character '" << acc[0] << "'";
-			error(ss.str(), lx->line, lx->col);
+			error(std::format("Unexpected character '{}'", acc[0]), lx->line, lx->col);
 			// remove whitespace
 			acc.erase(remove_if(acc.begin(), acc.end(), ::isspace), acc.end());
 			

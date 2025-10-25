@@ -7,7 +7,8 @@
 #include <fstream>
 #include <filesystem>
 
-using namespace std;
+using std::string;
+using std::vector;
 
 string program;
 vector<string> lines;

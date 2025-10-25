@@ -48,10 +48,10 @@ void deleteToken(Token* tok) {
 
 void printToken (Token* tok) {
 	if (tok == nullptr) {
-		cout << "<\"NULL\">";
+		std::cout << "<\"NULL\">";
 		return;
 	}
-    cout << "<\x1b[0;33m\"" << tok->lexeme
+    std::cout << "<\x1b[0;33m\"" << tok->lexeme
 		<< "\"\x1b[0m, \x1b[0;32m" << typeToString(tok->type)
 		<< "\x1b[0m, \x1b[0;36m" << tok->line
 		<< "\x1b[0m, \x1b[36m" << tok->col

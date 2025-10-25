@@ -6,7 +6,7 @@
 #include <cctype>
 #include <tuple>
 
-using namespace std;
+using std::string;
 
 enum TokenType {
 	TOK_INT, TOK_STRING, TOK_ID,

@@ -28,7 +28,7 @@ void deleteAST(ASTNode* ast) {
 
 void printAST(ASTNode* ast, int indent) {
 	if (indent > 0) {
-		cout << repeatStr("  ", indent - 1) << "↳ ";
+		std::cout << repeatStr("  ", indent - 1) << "↳ ";
 	}
 	string type;
 	switch (ast->type) {
@@ -38,7 +38,7 @@ void printAST(ASTNode* ast, int indent) {
 		case AST_EXPR_LITERAL: type = "Literal"; break;
 		default: type = "Unknown";
 	}
-	cout << "\x1b[36m" << type << "\x1b[0m: \x1b[33m\"" << ast->content->lexeme << "\"\x1b[0m\n";
+	std::cout << "\x1b[36m" << type << "\x1b[0m: \x1b[33m\"" << ast->content->lexeme << "\"\x1b[0m\n";
 	if (ast->firstChild != nullptr) {
 		printAST(ast->firstChild, indent + 1);
 	}
