@@ -4,13 +4,16 @@
 
 const SymbolEntry keywords[] = {
 	{"score", TOK_KEYWORD_SCORE}, {"glob", TOK_KEYWORD_GLOB}, {"const", TOK_KEYWORD_CONST},
-	{"if", TOK_KEYWORD_IF},
+	{"func", TOK_KEYWORD_FUNC},
+	{"if", TOK_KEYWORD_IF}, {"as", TOK_KEYWORD_AS}, {"at", TOK_KEYWORD_AT}, {"unless", TOK_KEYWORD_UNLESS},
+	{"import", TOK_KEYWORD_IMPORT}, {"namespace", TOK_KEYWORD_NAMESPACE},
 };
 
 const SymbolEntry symbols[] = {
 	{"+", TOK_PLUS}, {"-", TOK_MINUS}, {"*", TOK_ASTERISK}, {"/", TOK_SLASH}, {"%", TOK_PERCENT},
 	{"=", TOK_EQ},
-	{"==", TOK_EQ_EQ}, {">=", TOK_RARROW_EQ}, {"<=", TOK_LARROW_EQ},
+	{"==", TOK_EQ_EQ}, {">=", TOK_RARROW_EQ}, {"<=", TOK_LARROW_EQ}, {"!=", TOK_BANG_EQ},
+	{"&&", TOK_AMP_AMP}, {"||", TOK_PIPE_PIPE},
 	{"(", TOK_LPAREN}, {")", TOK_RPAREN},
 	{"{", TOK_LBRACE}, {"}", TOK_RBRACE},
 	{"[", TOK_LBRACK}, {"]", TOK_RBRACK},

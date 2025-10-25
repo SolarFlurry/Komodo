@@ -41,7 +41,7 @@ func main() {
 			}
 			file, err = os.Open(filepath)
 			if err != nil {
-				fmt.Println("\x1b[31mError: '" + filepath + "' does not exist")
+				cli.Error("File '" + filepath + "' does not exist")
 				os.Exit(0)
 			}
 		} else {

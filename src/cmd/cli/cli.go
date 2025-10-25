@@ -18,6 +18,13 @@ func Help() {
 	fmt.Println("")
 }
 
+func Error(err string) {
+	fmt.Println("\x1b[1;31m[Error]\x1b[0m " + err)
+}
+func Warn(warn string) {
+	fmt.Println("\x1b[33m[Warning]\x1b[0m " + warn)
+}
+
 /* ---------------------------- *\
  * VALUES GENERATED VIA PARSING *
 \* ---------------------------- */
@@ -54,14 +61,14 @@ func Parse() {
 					}
 				}
 				if !isFlag {
-					fmt.Println("\x1b[33mWARNING: Flag '", arg, "' does not exist.\x1b[0m")
+					Warn("Flag '" + arg + "' does not exist")
 				}
 			} else {
 				args = append(args, arg)
 			}
 		}
 		if len(args) < currentSubcommand.RequiredArgs {
-			fmt.Println("\x1b[31mError: Insufficient arguments\x1b[0m")
+			Error("Insufficient arguments")
 			os.Exit(0)
 		}
 	}
