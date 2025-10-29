@@ -90,7 +90,27 @@ ASTNode* parseExpression(int minbp) {
 	while (true) {
 		Token* op = parseToks[0];
 		if (op->type == TOK_EOF) break;
-		auto [lbp, rbp] = infixBindingPower(op->type);
+		auto [lbp, rbp] = postfixBindingPower(op->type);
+		if (lbp > 0) { // is a postfix operator
+			if (lbp < minbp) break;
+			match(op->type);
+			if (op->type == TOK_LBRACK) {
+				ASTNode* rhs = parseExpression(0);
+				ASTNode* temp = newNode(op);
+				temp->firstChild = lhs;
+				temp->firstChild->sibling = rhs;
+				lhs = temp;
+				lhs->type = AST_EXPR_BINARY;
+				match(TOK_RBRACK);
+			} else {
+				ASTNode* temp = newNode(op);
+				temp->firstChild = lhs;
+				lhs = temp;
+				lhs->type = AST_EXPR_UNARY;
+			}
+			op = parseToks[0];
+		}
+		std::tie(lbp, rbp) = infixBindingPower(op->type);
 		if (lbp == 0 && rbp == 0) {
 			break;
 		}
@@ -140,6 +160,13 @@ BindingPower infixBindingPower(TokenType op) {
 BindingPower prefixBindingPower(TokenType op) {
 	switch (op) {
 		case TOK_PLUS: case TOK_MINUS: return make_tuple(0, 5);
+		default: return make_tuple(0, 0);
+	}
+}
+
+BindingPower postfixBindingPower(TokenType op) {
+	switch (op) {
+		case TOK_LBRACK: return make_tuple(7, 0);
 		default: return make_tuple(0, 0);
 	}
 }

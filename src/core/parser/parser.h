@@ -37,3 +37,4 @@ ASTNode* parseExpression(int minbp = 0);
 ASTNode* parseAtom();
 BindingPower infixBindingPower(TokenType op);
 BindingPower prefixBindingPower(TokenType op);
+BindingPower postfixBindingPower(TokenType op);
