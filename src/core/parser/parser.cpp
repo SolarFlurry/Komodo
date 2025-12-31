@@ -1,6 +1,6 @@
-#include "parser.h"
-#include "../helper/help.h"
-#include "../helper/error.h"
+#include "parser.hpp"
+#include "../helper/help.hpp"
+#include "../helper/error.hpp"
 
 Lexer* parseLx;
 

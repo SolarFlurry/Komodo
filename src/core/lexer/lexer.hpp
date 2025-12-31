@@ -1,12 +1,6 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <sstream>
-#include <cctype>
-#include <tuple>
-
-using std::string;
+#include "../utils/include.hpp"
 
 enum TokenType {
 	TOK_INT, TOK_STRING, TOK_ID,
@@ -35,7 +29,7 @@ enum TokenType {
 };
 
 struct Token {
-	string lexeme;
+	str lexeme;
 	TokenType type;
 	unsigned int line;
 	unsigned int col;
@@ -43,16 +37,16 @@ struct Token {
 
 // lexer
 struct SymbolEntry {
-	string val;
+	str val;
 	TokenType type;
 };
 
 struct Lexer {
-	string src;
+	str src;
 	int idx;
 	int col;
 	int line;
-	Lexer(string src) {
+	Lexer(str src) {
 		this->src = src;
 		this->idx = 0;
 		this->col = 0;
@@ -63,8 +57,8 @@ struct Lexer {
 	}
 };
 
-TokenType lookupSymbol(string val);
-TokenType lookupKeyword(string val);
+TokenType lookupSymbol(str val);
+TokenType lookupKeyword(str val);
 void advance(Lexer*);
 void skipWhitespace(Lexer*);
 bool isEnd(Lexer*);

@@ -1,4 +1,4 @@
-#include "error.h"
+#include "error.hpp"
 
 vector<Token*> errors;
 

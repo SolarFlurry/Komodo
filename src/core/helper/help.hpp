@@ -2,8 +2,8 @@
 
 #include <iostream>
 #include <string>
-#include "../lexer/lexer.h"
-#include "../parser/parser.h"
+#include "../lexer/lexer.hpp"
+#include "../parser/parser.hpp"
 
 using std::string;
 

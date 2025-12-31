@@ -1,6 +1,6 @@
-#include "lexer.h"
-#include "../helper/help.h"
-#include "../helper/error.h"
+#include "lexer.hpp"
+#include "../helper/help.hpp"
+#include "../helper/error.hpp"
 
 const SymbolEntry keywords[] = {
 	{"score", TOK_KEYWORD_SCORE}, {"glob", TOK_KEYWORD_GLOB}, {"const", TOK_KEYWORD_CONST},
@@ -22,7 +22,7 @@ const SymbolEntry symbols[] = {
 	{"@", TOK_AT}, {",", TOK_COMMA},
 };
 
-TokenType lookupSymbol(string val) {
+TokenType lookupSymbol(str val) {
 	for (const auto entry : symbols) {
 		if (entry.val == val) {
 			return entry.type;
@@ -31,7 +31,7 @@ TokenType lookupSymbol(string val) {
 	return TOK_UNKNOWN;
 }
 
-TokenType lookupKeyword(string val) {
+TokenType lookupKeyword(str val) {
 	for (const auto entry : keywords) {
 		if (entry.val == val) {
 			return entry.type;
@@ -66,7 +66,7 @@ Token* nextToken(Lexer* lx) {
 	if (isEnd(lx)) {
 		return newToken("", TOK_EOF, lx);
 	}
-	string acc = "";
+	str acc = "";
 	if (isalpha(lx->current()) || lx->current() == '_') {
 		acc += lx->current();
 		advance(lx);

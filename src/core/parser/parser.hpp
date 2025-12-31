@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../lexer/lexer.h"
+#include "../lexer/lexer.hpp"
+#include "../utils/include.hpp"
 
 typedef std::tuple<int, int> BindingPower;
 

@@ -1,4 +1,4 @@
-#include "help.h"
+#include "help.hpp"
 
 std::string repeatStr (const string &s, unsigned int n) {
 	string result = "";
