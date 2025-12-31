@@ -1,4 +1,5 @@
 #include "parser.hpp"
+#include "../base_definitions/ast.hpp"
 #include "../helper/help.hpp"
 #include "../helper/error.hpp"
 
@@ -19,7 +20,8 @@ Token* lookahead(int t) {
 	return parseToks[t];
 }
 
-void match (TokenType type) {
+void consume (TokenType type) {
+	printToken(parseToks[0]);
 	if (parseToks[0]->type != type) {
 		string s = std::format("Unexpected '{}'", (parseToks[0]->type == TOK_EOF ? "EOF" : parseToks[0]->lexeme));
 		if (type != TOK_UNKNOWN)
@@ -52,121 +54,130 @@ void match (TokenType type) {
 	if (currentLookahead < 0) currentLookahead = 0;
 }*/
 
-ASTNode* parse (Lexer* lx) {
+Module* parse (Lexer* lx) {
 	//newScope();
 	parseLx = lx;
 	parseToks[0] = nextToken(parseLx);
 
-	ASTNode* root = new ASTNode();
-	root->content = newToken("", TOK_UNKNOWN, parseLx);
-	root->type = AST_PROGRAM;
+	Module* program = new Module();
 
 	currentLookahead = 0;
 
-	root->firstChild = parseExpression();
+	while (!isEnd(lx)) {
+		program->contents.push_back(parseExpression());
+	}
 
-	return root;
+	return program;
 }
 
-ASTNode* parseExpression(int minbp) {
-	ASTNode* lhs;
-	auto [_, rbp] = prefixBindingPower(parseToks[0]->type);
+Expr* parseExpression(int minbp) {
+	Expr* lhs;
+	auto bp = prefixBindingPower(parseToks[0]->type);
 	if (parseToks[0]->type == TOK_LPAREN) { // is a grouping
-		match(TOK_LPAREN);
+		consume(TOK_LPAREN);
 		lhs = parseExpression(0);
-		match(TOK_RPAREN);
+		consume(TOK_RPAREN);
 	}
-	else if (rbp > 0) { // is a prefix operator
+	else if (bp.right > 0) { // is a prefix operator
 		Token* op = parseToks[0];
-		match(op->type);
-		ASTNode* rhs = parseExpression(rbp);
+		consume(op->type);
+		Expr* rhs = parseExpression(bp.right);
 
-		lhs = newNode(op);
-		lhs->type = AST_EXPR_UNARY;
-		lhs->firstChild = rhs;
+		lhs = new Expr(op);
+		lhs->value = UnaryOp {
+			.op = UnaryOp::Invert,
+			.operand = rhs,
+		};
 	} else { // is an atom
 		lhs = parseAtom();
 	}
 	while (true) {
 		Token* op = parseToks[0];
 		if (op->type == TOK_EOF) break;
-		auto [lbp, rbp] = postfixBindingPower(op->type);
-		if (lbp > 0) { // is a postfix operator
-			if (lbp < minbp) break;
-			match(op->type);
-			if (op->type == TOK_LBRACK) {
-				ASTNode* rhs = parseExpression(0);
-				ASTNode* temp = newNode(op);
-				temp->firstChild = lhs;
-				temp->firstChild->sibling = rhs;
+		auto bp = postfixBindingPower(op->type);
+		if (bp.left > 0) { // is a postfix operator
+			if (bp.left < minbp) break;
+			consume(op->type);
+			if (op->type == TOK_LPAREN) {
+				Expr* rhs = parseExpression(0);
+				Expr* temp = new Expr(op);
+				temp->value = FuncCall {
+					.callee = lhs,
+					.args = {rhs},
+				};
 				lhs = temp;
-				lhs->type = AST_EXPR_BINARY;
-				match(TOK_RBRACK);
+				consume(TOK_RPAREN);
 			} else {
-				ASTNode* temp = newNode(op);
-				temp->firstChild = lhs;
+				Expr* temp = new Expr(op);
+				temp->value = UnaryOp {
+					.op = UnaryOp::Invert,
+					.operand = lhs,
+				};
 				lhs = temp;
-				lhs->type = AST_EXPR_UNARY;
 			}
 			op = parseToks[0];
 		}
-		std::tie(lbp, rbp) = infixBindingPower(op->type);
-		if (lbp == 0 && rbp == 0) {
+		bp = infixBindingPower(op->type);
+		if (bp.left == 0 && bp.right == 0) {
 			break;
 		}
-		if (lbp < minbp) {
+		if (bp.left < minbp) {
 			break;
 		}
-		match(op->type);
-		ASTNode* rhs = parseExpression(rbp);
+		consume(op->type);
+		Expr* rhs = parseExpression(bp.right);
 
-		ASTNode* temp = newNode(op);
-		temp->firstChild = lhs;
-		temp->firstChild->sibling = rhs;
+		Expr* temp = new Expr(op);
+		temp->value = BinaryOp {
+			.op = BinaryOp::Add,
+			.lhs = lhs,
+			.rhs = rhs,
+		};
 
 		lhs = temp;
-		lhs->type = AST_EXPR_BINARY;
 	}
 	return lhs;
 }
 
-ASTNode* parseAtom() {
-	ASTNode* atom = newNode(parseToks[0]);
+Expr* parseAtom() {
+	Expr* atom = new Expr(parseToks[0]);
 	if (parseToks[0]->type == TOK_INT) {
-		match(TOK_INT);
-		atom->type = AST_EXPR_LITERAL;
+		atom->value = (Literal) std::stoi(parseToks[0]->lexeme);
+		consume(TOK_INT);
 		return atom;
 	} else if (parseToks[0]->type == TOK_STRING) {
-		match(TOK_STRING);
-		atom->type = AST_EXPR_LITERAL;
+		atom->value = (Literal) parseToks[0]->lexeme;
+		consume(TOK_STRING);
 		return atom;
 	} else if (parseToks[0]->type == TOK_ID) {
-		match(TOK_ID);
-		atom->type = AST_EXPR_IDENTIFIER;
+		atom->value = Identifier {
+			.name = parseToks[0]->lexeme
+		};
+		consume(TOK_ID);
 		return atom;
 	}
-	match(TOK_UNKNOWN);
+	consume(TOK_UNKNOWN);
 	return atom;
 }
 
 BindingPower infixBindingPower(TokenType op) {
 	switch (op) {
-		case TOK_PLUS: case TOK_MINUS: return make_tuple(1, 2);
-		case TOK_ASTERISK: case TOK_SLASH: return make_tuple(3, 4);
-		default: return make_tuple(0, 0);
+		case TOK_PLUS: case TOK_MINUS: return BindingPower(1, 2);
+		case TOK_ASTERISK: case TOK_SLASH: return BindingPower(3, 4);
+		default: return BindingPower(0, 0);
 	}
 }
 
 BindingPower prefixBindingPower(TokenType op) {
 	switch (op) {
-		case TOK_PLUS: case TOK_MINUS: return make_tuple(0, 5);
-		default: return make_tuple(0, 0);
+		case TOK_PLUS: case TOK_MINUS: return BindingPower(0, 5);
+		default: return BindingPower(0, 0);
 	}
 }
 
 BindingPower postfixBindingPower(TokenType op) {
 	switch (op) {
-		case TOK_LBRACK: return make_tuple(7, 0);
-		default: return make_tuple(0, 0);
+		case TOK_LPAREN: return BindingPower(7, 0);
+		default: return BindingPower(0, 0);
 	}
 }

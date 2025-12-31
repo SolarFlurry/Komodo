@@ -11,7 +11,7 @@ set(SOURCES
 	src/core/lexer/lexer.cpp
 	src/core/parser/parser.cpp
 	src/core/helper/token.cpp
-	src/core/helper/ast.cpp
+	src/core/base_definitions/ast.cpp
 	src/core/helper/error.cpp)
 
 add_executable(kmd_compiler ${SOURCES})

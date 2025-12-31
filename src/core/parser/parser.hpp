@@ -2,40 +2,27 @@
 
 #include "../lexer/lexer.hpp"
 #include "../utils/include.hpp"
+#include "../base_definitions/ast.hpp"
 
-typedef std::tuple<int, int> BindingPower;
-
-enum NodeType {
-	AST_PROGRAM,
-
-	AST_EXPR_LITERAL,
-	AST_EXPR_IDENTIFIER,
-	AST_EXPR_BINARY,
-	AST_EXPR_UNARY,
-};
-
-struct ASTNode {
-	NodeType type;
-	Token* content;
-	ASTNode* sibling;
-	ASTNode* firstChild;
-	ASTNode () {
-		content = nullptr;
-		sibling = nullptr;
-		firstChild = nullptr;
+struct BindingPower {
+	u32 left;
+	u32 right;
+	BindingPower(u32 left, u32 right) {
+		this->left = left;
+		this->right = right;
 	}
 };
 
 const int MAX_LOOKAHEAD = 1;
 
 Token* lookahead(int t);
-void match(TokenType type);
+void consume(TokenType type);
 //void match(TokenType type, string lexeme);
 
-ASTNode* parse(Lexer* lx);
+Module* parse(Lexer* lx);
 
-ASTNode* parseExpression(int minbp = 0);
-ASTNode* parseAtom();
+Expr* parseExpression(int minbp = 0);
+Expr* parseAtom();
 BindingPower infixBindingPower(TokenType op);
 BindingPower prefixBindingPower(TokenType op);
 BindingPower postfixBindingPower(TokenType op);

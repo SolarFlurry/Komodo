@@ -16,9 +16,8 @@ vector<string> nameSpaces;
 
 const char* KOMODO_ENV;
 
-#include "parser/parser.h"
-#include "helper/help.h"
-#include "helper/error.h"
+#include "parser/parser.hpp"
+#include "helper/error.hpp"
 
 int main () {
 	/*KOMODO_ENV = getenv("KOMODO_ENV");
@@ -34,14 +33,14 @@ int main () {
 	}
 
 	Lexer lexer = Lexer(program);
-	ASTNode* ast = parse(&lexer);
+	Module* ast = parse(&lexer);
 	cout << "finished parsing\n";
 	if (hasAnyErrors()) {
 		cout << "Errors:\n";
 		printErrors();
 	} else {
 		cout << "Abstract Syntax Tree:\n";
-		printAST(ast, 0);
+		ast->print();
 	}
 
 	/*if (errors.size() == 0) {

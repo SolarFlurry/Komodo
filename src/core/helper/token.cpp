@@ -1,4 +1,4 @@
-#include "help.h"
+#include "help.hpp"
 
 string typeToString(TokenType type) {
 	switch (type) {

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <type_traits>
 #include <variant>
 
@@ -19,14 +21,14 @@ template<typename  T, typename ...Types> auto& get_elem(std::variant<Types...>& 
 
 #define match(v)                                                                                    \
 {                                                                                                   \
-    auto& fumo__v__ = v;                                                                            \
+    auto& v__ = v;                                                                                  \
     bool was_default = false;                                                                       \
-    switch (auto fumo__t_seq__ = type_sequence(v); index_of(v)) {                                   
+    switch (auto t_seq__ = type_sequence(v); index_of(v)) {                                   
 
 #define holds(T, name)                                                                              \
 break;}                                                                                             \
-    case fumo__t_seq__.idx<std::remove_pointer<std ::remove_cvref<T>::type>::type>: {               \
-    T name = get_elem<std::remove_pointer<std ::remove_cvref<T>::type>::type>(fumo__v__); 
+    case t_seq__.idx<std::remove_pointer<std ::remove_cvref<T>::type>::type>: {                     \
+    T name = get_elem<std::remove_pointer<std ::remove_cvref<T>::type>::type>(v__); 
 
 #define _                                                                                           \
         break;                                                                                      \

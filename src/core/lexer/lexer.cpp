@@ -1,6 +1,6 @@
 #include "lexer.hpp"
-#include "../helper/help.hpp"
 #include "../helper/error.hpp"
+#include "../helper/help.hpp"
 
 const SymbolEntry keywords[] = {
 	{"score", TOK_KEYWORD_SCORE}, {"glob", TOK_KEYWORD_GLOB}, {"const", TOK_KEYWORD_CONST},

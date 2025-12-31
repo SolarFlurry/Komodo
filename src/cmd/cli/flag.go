@@ -20,7 +20,7 @@ func AddFlag(subcmd string, name string, usage string) {
 		}
 	}
 	if foundSubcmd.Name == "" {
-		fmt.Println("Unkown subcommand")
+		fmt.Println("Unknown subcommand")
 		return
 	}
 	foundSubcmd.Flags = append(foundSubcmd.Flags, flag{name, usage})

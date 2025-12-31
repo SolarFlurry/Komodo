@@ -1,8 +1,22 @@
+#pragma once
+
 #include "../utils/include.hpp"
 #include "../lexer/lexer.hpp"
+#include "./type.hpp"
+
+struct Expr;
+
+struct Module {
+	vec<Expr*> contents = vec<Expr*>();
+	void print ();
+};
 
 struct Identifier {
-	str name = "";
+	str_view name;
+};
+
+struct RValue {
+	Identifier ident;
 };
 
 struct VarDecl {
@@ -22,8 +36,9 @@ struct FuncDecl {
 		MemberFunc,
 	} kind;
 	Identifier func;
-	ASTNode* returnType;
-	vec<ASTNode*> params;
+	Type* returnType;
+	vec<Identifier*> params;
+	vec<Expr*> body;
 };
 
 typedef std::variant<int, float, bool, char, str> Literal;
@@ -45,8 +60,8 @@ struct BinaryOp {
 		And,
 		Or,
 	} op;
-	ASTNode* lhs;
-	ASTNode* rhs;
+	Expr* lhs;
+	Expr* rhs;
 };
 
 struct UnaryOp {
@@ -54,10 +69,18 @@ struct UnaryOp {
 		Invert,
 		Not,
 	} op;
-	ASTNode* operand;
+	Expr* operand;
 };
 
-struct ASTNode {
-	std::variant<VarDecl> contents;
-	Token token;
+struct FuncCall {
+	Expr* callee;
+	vec<Expr*> args;
+};
+
+struct Expr {
+	std::variant<Literal, Identifier, BinaryOp, UnaryOp, FuncCall> value;
+	Type* type;
+	Token* token;
+	Expr (Token* tkn);
+	void print(u32 depth);
 };
